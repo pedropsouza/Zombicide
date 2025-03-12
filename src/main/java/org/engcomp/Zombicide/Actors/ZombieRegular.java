@@ -1,6 +1,6 @@
 package org.engcomp.Zombicide.Actors;
 
-public class ZombieRegular extends LivingActor {
+public class ZombieRegular extends Zombie {
     public ZombieRegular() {
         super();
         this.textRepr = "Zombie";

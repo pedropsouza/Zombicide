@@ -1,6 +1,6 @@
 package org.engcomp.Zombicide.Actors;
 
-public abstract class Zombie extends LivingActor {
+public abstract class Zombie extends ActorObj {
     public Zombie() {
         super();
         this.hasCollision = true;

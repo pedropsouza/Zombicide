@@ -1,6 +1,6 @@
 package org.engcomp.Zombicide.Actors;
 
-public class ZombieRunner extends LivingActor {
+public class ZombieRunner extends Zombie {
     public ZombieRunner() {
         super();
         this.textRepr = "Runner Zombie";

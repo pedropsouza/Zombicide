@@ -1,14 +1,14 @@
 10 10
-P X . B . . . Z . .
-. X . X R . . B . .
+P X . T . . . Z . .
+. X . X R . . H . .
 . X . X . . X X . Z
 . X . X . . X X . .
-. . B X . C X X . .
+. . H X . A X X . .
 . X X X . . X X C .
 Z X . . . Z X X . .
-. X . R . B . . . .
+. X . R . A . . . .
 . X X X X X . . X .
-B . . . Z . . . X G
+H . . . Z . . . X G
 
 
 

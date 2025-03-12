@@ -2,7 +2,7 @@ package org.engcomp.Zombicide.Actors;
 
 import org.engcomp.Zombicide.GridLoc;
 
-public abstract class GameActor {
+public abstract class GameObj {
     protected boolean hasCollision = false;
     protected boolean hasRun = false;
     protected String textRepr = "abstract GameActor";
