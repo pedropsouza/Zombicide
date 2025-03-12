@@ -1,6 +1,5 @@
 package org.engcomp.Zombicide;
 import org.engcomp.Zombicide.Actors.*;
-import org.engcomp.Zombicide.Items.*;
 
 import javax.swing.*;
 import java.io.File;
@@ -42,10 +41,9 @@ public class GameBoard extends Matrix<GridLoc> {
             case 'X' -> new Wall();
             case 'R' -> new ZombieCrawler();
             case 'C' -> new ZombieRunner();
-            //case 'B' -> new Chest();
-            case 'H' -> new Chest(new Revolver());
-            case 'A' -> new Chest(new Bandages());
-            case 'T' -> new Chest(new BaseballBat());
+            case 'H' -> new Chest(Item.Revolver);
+            case 'A' -> new Chest(Item.Bandages);
+            case 'T' -> new Chest(Item.BaseballBat);
             case 'Z' -> new ZombieRegular();
             case 'G' -> new ZombieGiant();
             case '.' -> new Floor();

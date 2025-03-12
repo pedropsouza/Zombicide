@@ -1,6 +1,7 @@
 package org.engcomp.Zombicide;
 
-import org.engcomp.Zombicide.Actors.*;
+import org.engcomp.Zombicide.Actors.Chest;
+import org.engcomp.Zombicide.Actors.Zombie;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,14 +9,14 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Game {
+public class CombatWin {
     protected JFrame frame;
     protected JButton loadBtn;
     protected GridLayout btnGridLayout;
     protected GameBoard board = null;
     private final Path matrixFilePath = Paths.get("matrix.txt");
 
-    public Game() {
+    public CombatWin() {
         frame = new JFrame("Zombicide");
         loadBtn = new JButton("load");
         frame.setSize(800, 800);
