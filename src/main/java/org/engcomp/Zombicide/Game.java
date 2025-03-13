@@ -12,6 +12,7 @@ public class Game extends JFrame {
     protected JButton loadBtn;
     protected GridLayout btnGridLayout;
     protected GameBoard board = null;
+    protected CombatWin combatWin = null;
 
     public Game() {
         super("Zombicide");
