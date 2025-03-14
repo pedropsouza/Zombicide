@@ -1,5 +1,7 @@
 package org.engcomp.Zombicide.Actors;
 
+import javax.swing.*;
+
 public abstract class Zombie extends ActorObj {
     public Zombie() {
         super();
@@ -7,6 +9,7 @@ public abstract class Zombie extends ActorObj {
         this.hasRun = true;
         this.health = 2;
         this.textRepr = "abstract Zombie";
+        this.imgRepr = new ImageIcon("assets/zombies/idle.gif");
     }
 
     @Override
