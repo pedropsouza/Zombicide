@@ -19,7 +19,7 @@ public class Game extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         var path = FileSystems.getDefault().getPath(".", "matrix.txt");
         board = GameBoard.load(this, path);
-        board.stream().forEach(e -> add(e.val.guiCmpnt));
+        board.stream().forEach(e -> add(e.val));
         board.getPlayer().setPerception(playerPerception);
         System.out.println(board);
         btnGridLayout = new GridLayout(board.getCols(), board.getRows());
@@ -33,7 +33,7 @@ public class Game extends JFrame {
     }
     public void updateBtns() {
         board.stream().forEach(e -> {
-            var targetBtn = e.val.guiCmpnt;
+            var targetBtn = e.val;
             targetBtn.setEnabled(
                     this.board.getPlayer().canInteract(e.val)
             );

@@ -7,7 +7,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class GameObj extends JLabel {
+public abstract class GameObj {
     protected boolean hasCollision = false;
     protected boolean hasRun = false;
     protected String textRepr = "abstract GameActor";
@@ -32,14 +32,5 @@ public abstract class GameObj extends JLabel {
 
     public ImageIcon getImgRepr() {
         return imgRepr;
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (imgRepr != null) { g.drawImage(imgRepr.getImage(), 0, 0, this); }
-        for (var img : this.imgOverlays) {
-            g.drawImage(img.getImage(), 0, 0, this);
-        }
     }
 }

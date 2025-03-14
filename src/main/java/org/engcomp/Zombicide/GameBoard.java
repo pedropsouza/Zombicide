@@ -36,31 +36,31 @@ public class GameBoard extends Matrix<GridLoc> {
         Player p = null;
         ArrayList<GridLoc> data = new ArrayList<>();
         for (var entry : charMatrix.stream().toList()) {
-            GameObj obj = switch(entry.val) {
+            List<GameObj> objs = switch(entry.val) {
             case 'P' -> {
             p = new Player();
-            yield p;
+            yield List.of(new Floor(), p);
             }
-            case 'X' -> new Wall();
-            case 'R' -> new ZombieCrawler();
-            case 'C' -> new ZombieRunner();
-            case 'H' -> new Chest(Item.Revolver);
-            case 'A' -> new Chest(Item.Bandages);
-            case 'T' -> new Chest(Item.BaseballBat);
-            case 'Z' -> new ZombieRegular();
-            case 'G' -> new ZombieGiant();
-            case '.' -> new Floor();
+            case 'X' -> List.of(new Wall());
+            case 'R' -> List.of(new Floor(), new ZombieCrawler());
+            case 'C' -> List.of(new Floor(), new ZombieRunner());
+            case 'H' -> List.of(new Floor(), new Chest(Item.Revolver));
+            case 'A' -> List.of(new Floor(), new Chest(Item.Bandages));
+            case 'T' -> List.of(new Floor(), new Chest(Item.BaseballBat));
+            case 'Z' -> List.of(new Floor(), new ZombieRegular());
+            case 'G' -> List.of(new Floor(), new ZombieGiant());
+            case '.' -> List.of(new Floor());
             default -> { assert false; yield null; }
             };
 
-            var loc = new GridLoc(List.of(obj), entry.idx.col, entry.idx.row);
-            obj.setLoc(loc);
+            var loc = new GridLoc(objs, entry.idx.col, entry.idx.row);
+            objs.forEach(obj -> obj.setLoc(loc));
             data.add(loc);
         }
         GameBoard board = new GameBoard(game, charMatrix.getCols(), charMatrix.getRows(), data);
         board.stream().forEach(entry -> {
             var loc = entry.val;
-            loc.guiCmpnt.addMouseListener(new MouseAdapter() {
+            loc.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     board.playerInput(loc);
@@ -147,7 +147,7 @@ public class GameBoard extends Matrix<GridLoc> {
             case InputValidationResult.MoveToLoc -> swap(player.getLoc(), loc);
             case InputValidationResult.Chest -> {
                 var oldPlayerLoc = player.getLoc();
-                loc.setOccupants(Collections.singletonList(player));
+                loc.setOccupants(oldPlayerLoc.getOccupants());
                 oldPlayerLoc.setOccupants(List.of(new Floor())); // this is *really* ugly
                 game.chestEncounter(chestTarget);
             }
