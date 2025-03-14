@@ -1,13 +1,16 @@
 package org.engcomp.Zombicide;
 import org.engcomp.Zombicide.Actors.*;
 
-import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -50,20 +53,20 @@ public class GameBoard extends Matrix<GridLoc> {
             default -> { assert false; yield null; }
             };
 
-            var btn = new JButton(obj.toString());
-            btn.setVisible(true);
-            var loc = new GridLoc(btn, entry.idx.col, entry.idx.row);
-            loc.setOccupant(obj);
+            var loc = new GridLoc(List.of(obj), entry.idx.col, entry.idx.row);
             obj.setLoc(loc);
             data.add(loc);
         }
         GameBoard board = new GameBoard(game, charMatrix.getCols(), charMatrix.getRows(), data);
         board.stream().forEach(entry -> {
             var loc = entry.val;
-            loc.btn.addActionListener(e -> {
-                board.playerInput(loc);
-                board.game.finishTurn();
-                System.out.println("Novo estado:\n" + board);
+            loc.guiCmpnt.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    board.playerInput(loc);
+                    board.game.finishTurn();
+                    System.out.println("Novo estado:\n" + board);
+                }
             });
         });
         if (p == null) {
@@ -82,26 +85,74 @@ public class GameBoard extends Matrix<GridLoc> {
     }
 
     public void swap(GridLoc a, GridLoc b) {
-        var temp = a.getOccupant();
-        a.setOccupant(b.getOccupant());
-        b.setOccupant(temp);
+        var temp = a.getOccupants();
+        a.setOccupants(b.getOccupants());
+        b.setOccupants(temp);
     }
 
     public void playerInput(GridLoc loc) {
         assert this.player != null;
 
-        var occ = loc.getOccupant();
-        if (occ != null) {
-            assert !(occ instanceof Wall);
-            if (occ instanceof Zombie) {
-                game.combat((Zombie) occ);
-            } else if (occ instanceof Chest) {
+        var occupants = loc.getOccupants();
+        Zombie combatTarget = null;
+        Chest chestTarget = null;
+        GridLoc moveTarget = null;
+
+        enum InputValidationResult {
+            Combat(2),
+            Chest(1),
+            MoveToLoc(0),
+            Invalid(-1);
+
+            public int priority = -1;
+            InputValidationResult(int priority) {
+                this.priority = priority;
+            }
+            public boolean trumps(InputValidationResult other) {
+                return this.priority > other.priority;
+            }
+        };
+        InputValidationResult result = InputValidationResult.Invalid;
+
+        if (!occupants.isEmpty()) {
+            if (occupants.stream().noneMatch(occ -> player.canInteract(occ.getLoc()))) {
+                return;
+            }
+            for (GameObj occ : occupants) {
+                switch (occ) {
+                    case Zombie zombie -> {
+                        if (InputValidationResult.Combat.trumps(result)) {
+                            combatTarget = zombie;
+                            result = InputValidationResult.Combat;
+                        }
+                    }
+                    case Chest chest -> {
+                        if (InputValidationResult.Chest.trumps(result)) {
+                            chestTarget = chest;
+                            result = InputValidationResult.Chest;
+                        }
+                    }
+                    case Floor floor -> {
+                        if (InputValidationResult.MoveToLoc.trumps(result)) {
+                            //moveTarget = floor.getLoc();
+                            result = InputValidationResult.MoveToLoc;
+                        }
+                    }
+                    default -> {}
+                }
+            }
+        }
+        switch (result) {
+            case InputValidationResult.Invalid -> System.err.println("Invalid player input to grid location + " + loc + "!");
+            case InputValidationResult.MoveToLoc -> swap(player.getLoc(), loc);
+            case InputValidationResult.Chest -> {
                 var oldPlayerLoc = player.getLoc();
-                loc.setOccupant(player);
-                oldPlayerLoc.setOccupant(new Floor()); // this is *really* ugly
-                game.chestEncounter((Chest) occ);
-            } else { // Floor
-                swap(player.getLoc(), loc);
+                loc.setOccupants(Collections.singletonList(player));
+                oldPlayerLoc.setOccupants(List.of(new Floor())); // this is *really* ugly
+                game.chestEncounter(chestTarget);
+            }
+            case InputValidationResult.Combat -> {
+                game.combat(combatTarget);
             }
         }
     }

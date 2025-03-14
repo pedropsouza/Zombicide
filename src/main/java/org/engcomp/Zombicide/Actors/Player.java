@@ -2,6 +2,7 @@ package org.engcomp.Zombicide.Actors;
 
 import org.engcomp.Zombicide.Item;
 
+import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ public class Player extends ActorObj {
         super();
         this.health = 5;
         this.textRepr = "Player";
+        this.imgRepr = new ImageIcon("assets/idle.gif");
     }
 
     @Override

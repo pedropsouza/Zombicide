@@ -15,18 +15,50 @@ public abstract class ActorObj extends GameObj {
         return this.loc.taxiCabDistance(loc) <= this.speed;
     }
     public boolean canMove(GridLoc loc) {
-        var occ = loc.getOccupant();
-        var occupied = occ != null;
-        var isFloor = occupied && occ instanceof Floor;
-        return (!occupied | isFloor) && insideMoveDist(loc);
+        var occupants = loc.getOccupants();
+        var occupied = !occupants.isEmpty();
+        var anyHasCollision = occupied && occupants.stream().anyMatch(o -> o.hasCollision);
+        return (!occupied | !anyHasCollision) && insideMoveDist(loc);
     }
 
     public boolean canInteract(GridLoc loc) {
-        var occ = loc.getOccupant();
-        var occupied = occ != null;
-        var isChest = occupied && occ instanceof Chest;
-        var isZombie = occupied && occ instanceof Zombie;
-        boolean v = isChest || isZombie;
+        var occupants = loc.getOccupants();
+        var occupied = !occupants.isEmpty();
+        var hasChest = occupied && occupants.stream().anyMatch(o -> o instanceof Chest);
+        var hasZombie = occupied && occupants.stream().anyMatch(o -> o instanceof Zombie);
+        boolean v = hasZombie || hasChest;
         return canMove(loc) || (v && insideMoveDist(loc));
+    }
+
+    public int getPerception() {
+        return perception;
+    }
+
+    public void setPerception(int perception) {
+        this.perception = perception;
+    }
+
+    public int getConcealment() {
+        return concealment;
+    }
+
+    public void setConcealment(int concealment) {
+        this.concealment = concealment;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
     }
 }

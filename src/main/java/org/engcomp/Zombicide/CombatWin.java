@@ -17,8 +17,8 @@ public class CombatWin extends JFrame {
     protected Map<String, JButton> btns = new HashMap<>();
     protected JPanel mainPanel;
     protected JPanel btnsPanel;
-    protected Layout btnGridLayout;
-    protected GridLayout btnGridLayout;
+    //protected Layout btnGridLayout;
+    //protected GridLayout btnGridLayout;
     protected Player player;
     protected ActorObj foe;
 
@@ -42,8 +42,8 @@ public class CombatWin extends JFrame {
         setSize(300, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        btnGridLayout = new GridLayout(btns.size(), 1);
-        setLayout(btnGridLayout);
+        //btnGridLayout = new GridLayout(btns.size(), 1);
+        //setLayout(btnGridLayout);
         setVisible(true);
 
         this.player = player;
