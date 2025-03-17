@@ -17,6 +17,7 @@ public class GridLoc extends JLayeredPane {
     public GridLoc(List<GameObj> occupants, int col, int row) {
         super();
         this.setOccupants(occupants); this.col = col; this.row = row;
+        setPreferredSize(new Dimension(80, 80));
     }
 
     public int getCol() {
@@ -73,7 +74,7 @@ public class GridLoc extends JLayeredPane {
             if (imgRepr != null) {
                 g.drawImage(imgRepr.getImage(), 0, 0, this);
             } else {
-                g.drawString(occupant.toString(), 00,40);
+                g.drawString(occupant.toString(), 0,40);
             }
             //for (var img : this.imgOverlays) {
             //    g.drawImage(img.getImage(), 0, 0, this);

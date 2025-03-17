@@ -15,8 +15,6 @@ import java.util.stream.Stream;
 
 public class CombatWin extends JFrame {
     protected Map<String, JButton> btns = new HashMap<>();
-    protected JPanel mainPanel;
-    protected JPanel btnsPanel;
     //protected Layout btnGridLayout;
     //protected GridLayout btnGridLayout;
     protected Player player;

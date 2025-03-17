@@ -10,14 +10,15 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public class Menu extends JFrame {
+public class Menu extends Box {
     protected ArrayList<JButton> btns;
-    protected GridLayout btnGridLayout;
-    protected GameBoard board = null;
     public record MenuEntry(String text, ActionListener callback) {};
 
-    public Menu(Stream<MenuEntry> entries) {
-        super("Zombicide Main Menu");
+    public Menu(Stream<MenuEntry> entries, int axis, JLabel title) {
+        super(axis);
+        if (title != null) {
+            add(title);
+        }
         btns = new ArrayList<>();
 
         entries.forEach(entry -> {
@@ -27,10 +28,9 @@ public class Menu extends JFrame {
             add(btn);
         });
 
-        setSize(300, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        btnGridLayout = new GridLayout(btns.size(), 1);
-        setLayout(btnGridLayout);
         setVisible(true);
+    }
+    public Menu(Stream<MenuEntry> entries, int axis) {
+        this(entries, axis, null);
     }
 }
