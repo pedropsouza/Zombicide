@@ -93,7 +93,10 @@ public class CombatWin extends JFrame {
     private void afterAction() {
         setStage(switch (getStage()) {
             case CombatStage.Starting -> {
+                remove(actionBtns);
                 actionBtns = new Menu(Arrays.stream(combatEntries), BoxLayout.LINE_AXIS, new JLabel("Actions"));
+                add(actionBtns, BorderLayout.SOUTH);
+                revalidate();
                 yield CombatStage.Started;
             }
             case CombatStage.Started -> {

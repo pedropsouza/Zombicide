@@ -44,14 +44,18 @@ public abstract class Zombie extends ActorObj {
                 neighs.add(loc);
             }
         }
-        PriorityQueue<Interaction> possInter = new PriorityQueue<>();
+        PriorityQueue<Interaction> possInter = new PriorityQueue<>((l,r) -> {
+            return -l.compareTo(r); // reverse ordering, from highest to lowest
+        });
         Interaction.MoveToLoc desiredMove = null;
         for (var loc : neighs) {
             possInter.addAll(loc.possibleInteractions(this));
         }
         if (possInter.isEmpty()) return null;
+        System.out.println("possibilities: " + possInter);
         var maxPrio = possInter.peek().getPriority();
         possInter.removeIf(i -> i.getPriority() != maxPrio);
+        System.out.println("after culling: " + possInter);
         for (var i : possInter) {
             switch (i) {
                 case Interaction.MoveToLoc move: {
