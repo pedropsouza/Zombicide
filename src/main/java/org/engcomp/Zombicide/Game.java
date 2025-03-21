@@ -4,6 +4,7 @@ import org.engcomp.Zombicide.Actors.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.List;
@@ -106,7 +107,21 @@ public class Game extends JFrame {
     }
 
     public void combat(Zombie zed) {
-        combatWin = new CombatWin(board.getPlayer(), zed);
+        if (combatWin != null) return;
+        combatWin = new CombatWin(this, board.getPlayer(), zed);
+    }
+
+    public void combatEnded(CombatWin.CombatStage stage) {
+        combatWin = null;
+        switch (stage) {
+            case CombatWin.CombatStage.PlayerDead -> gameOver();
+        }
+    }
+
+    public void gameOver() {
+        System.out.println("You died. Game over!");
+        JOptionPane.showMessageDialog(this, "You died. Game Over!");
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 
     public void chestEncounter(Chest c) {
@@ -131,5 +146,11 @@ public class Game extends JFrame {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public void removeActor(ActorObj actor) {
+        this.actors = actors.stream().filter(a -> a != actor).toList();
+        var loc = actor.getLoc();
+        loc.setOccupants(loc.getOccupants().stream().filter(occ -> occ != actor).toList());
     }
 }
