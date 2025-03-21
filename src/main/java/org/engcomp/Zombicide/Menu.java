@@ -12,7 +12,10 @@ import java.util.stream.Stream;
 
 public class Menu extends Box {
     protected ArrayList<JButton> btns;
-    public record MenuEntry(String text, ActionListener callback) {};
+    public record MenuEntry(String text, ActionListener callback) {
+        public String getText() { return text; }
+        public ActionListener getCallback() { return callback; }
+    };
 
     public Menu(Stream<MenuEntry> entries, int axis, JLabel title) {
         super(axis);

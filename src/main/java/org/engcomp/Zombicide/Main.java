@@ -41,11 +41,22 @@ public class Main {
             { // Menu de inicio
                 Menu.MenuEntry[] entries = {
                         new Menu.MenuEntry("Start", _ -> {
-                            game = new Game(percepcao);
+                            game = new Game("matrix.txt", percepcao);
                             setVisible(false);
                         }),
                         new Menu.MenuEntry("DEBUG", _ -> {
-                            game = new Game(percepcao);
+                            game = new Game("matrix.txt", percepcao);
+                            game.setDebug(true);
+                            setVisible(false);
+                        }),
+                        new Menu.MenuEntry("DEBUG MAP", _ -> {
+                            game = new Game("testmap.txt", percepcao);
+                            game.setDebug(true);
+                            setVisible(false);
+                        }),
+                        new Menu.MenuEntry("SINGLE ZED MAP", _ -> {
+                            game = new Game("matrix_single_z.txt", percepcao);
+                            game.setDebug(true);
                             setVisible(false);
                         }),
                         new Menu.MenuEntry("Exit", _ -> {

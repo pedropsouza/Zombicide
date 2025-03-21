@@ -1,5 +1,8 @@
 package org.engcomp.Zombicide.Actors;
 
+import org.engcomp.Zombicide.Game;
+import org.engcomp.Zombicide.GridLoc;
+import org.engcomp.Zombicide.Interaction;
 import org.engcomp.Zombicide.Item;
 
 import javax.swing.*;
@@ -8,15 +11,22 @@ import java.util.Map;
 
 public class Player extends ActorObj {
     protected Map<Item, Integer> inventory = new HashMap<>();
-    public Player() {
-        super();
+    public Player(Game owner) {
+        super(owner);
         this.health = 5;
         this.textRepr = "Player";
         this.imgRepr = new ImageIcon("assets/idle.gif");
     }
 
     @Override
-    public void run() {
+    public Interaction run() {
+        return super.run();
+    }
+
+    public boolean canInteract(GridLoc loc) {
+        var withinDist = loc.getPlayerDistance() <= speed;
+        var hasInteractions = !loc.possibleInteractions(this).isEmpty();
+        return withinDist && hasInteractions;
     }
 
     public void addItemToInventory(Item item) {
@@ -24,7 +34,7 @@ public class Player extends ActorObj {
         inventory.put(item, count+1);
     }
     public boolean canUseItem(Item item) {
-        var count = inventory.get(item);
+        var count = inventory.getOrDefault(item, 0);
         return count > 0;
     }
 

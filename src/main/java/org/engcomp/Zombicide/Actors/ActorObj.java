@@ -1,33 +1,23 @@
 package org.engcomp.Zombicide.Actors;
 
+import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.GridLoc;
 
 public abstract class ActorObj extends GameObj {
-    protected boolean hasCollision = true;
-    protected boolean hasRun = true;
     protected int health = 5;
     ///  how many cells can this actor move per tick
     protected int speed = 1;
     protected int perception = 1;
     protected int concealment = 0;
 
-    public boolean insideMoveDist(GridLoc loc) {
-        return this.loc.taxiCabDistance(loc) <= this.speed;
-    }
-    public boolean canMove(GridLoc loc) {
-        var occupants = loc.getOccupants();
-        var occupied = !occupants.isEmpty();
-        var anyHasCollision = occupied && occupants.stream().anyMatch(o -> o.hasCollision);
-        return (!occupied | !anyHasCollision) && insideMoveDist(loc);
+    public ActorObj(Game owner) {
+        super(owner);
+        this.hasCollision = true;
+        owner.getActors().add(this);
     }
 
-    public boolean canInteract(GridLoc loc) {
-        var occupants = loc.getOccupants();
-        var occupied = !occupants.isEmpty();
-        var hasChest = occupied && occupants.stream().anyMatch(o -> o instanceof Chest);
-        var hasZombie = occupied && occupants.stream().anyMatch(o -> o instanceof Zombie);
-        boolean v = hasZombie || hasChest;
-        return canMove(loc) || (v && insideMoveDist(loc));
+    public boolean insideMoveDist(GridLoc loc) {
+        return this.loc.taxiCabDistance(loc) <= this.speed;
     }
 
     public int getPerception() {
@@ -52,6 +42,10 @@ public abstract class ActorObj extends GameObj {
 
     public void setHealth(int health) {
         this.health = health;
+    }
+
+    public boolean isDead() {
+        return getHealth() <= 0;
     }
 
     public int getSpeed() {

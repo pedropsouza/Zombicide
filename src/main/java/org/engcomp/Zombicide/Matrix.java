@@ -38,7 +38,11 @@ public class Matrix<T> {
     }
 
     public T get(int col, int row) {
-        return this.mat[row][col];
+        try {
+            return this.mat[row][col];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     public T get(MatrixIdx idx) {

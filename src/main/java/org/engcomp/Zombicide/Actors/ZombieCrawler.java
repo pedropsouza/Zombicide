@@ -1,13 +1,16 @@
 package org.engcomp.Zombicide.Actors;
 
+import org.engcomp.Zombicide.Game;
+import org.engcomp.Zombicide.Interaction;
+
 public class ZombieCrawler extends Zombie {
-    public ZombieCrawler() {
-        super();
+    public ZombieCrawler(Game owner) {
+        super(owner);
         this.textRepr = "Crawling Zombie";
     }
 
     @Override
-    public void run() {
-
+    public Interaction run() {
+        return super.run();
     }
 }

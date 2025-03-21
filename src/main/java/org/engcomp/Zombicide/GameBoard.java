@@ -1,6 +1,7 @@
 package org.engcomp.Zombicide;
 import org.engcomp.Zombicide.Actors.*;
 
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -8,9 +9,7 @@ import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -38,18 +37,19 @@ public class GameBoard extends Matrix<GridLoc> {
         for (var entry : charMatrix.stream().toList()) {
             List<GameObj> objs = switch(entry.val) {
             case 'P' -> {
-            p = new Player();
-            yield List.of(new Floor(), p);
+            p = new Player(game);
+            yield List.of(new Floor(game), p);
             }
-            case 'X' -> List.of(new Wall());
-            case 'R' -> List.of(new Floor(), new ZombieCrawler());
-            case 'C' -> List.of(new Floor(), new ZombieRunner());
-            case 'H' -> List.of(new Floor(), new Chest(Item.Revolver));
-            case 'A' -> List.of(new Floor(), new Chest(Item.Bandages));
-            case 'T' -> List.of(new Floor(), new Chest(Item.BaseballBat));
-            case 'Z' -> List.of(new Floor(), new ZombieRegular());
-            case 'G' -> List.of(new Floor(), new ZombieGiant());
-            case '.' -> List.of(new Floor());
+            case 'X' -> List.of(new Wall(game));
+            case 'C' -> List.of(new Floor(game), new ZombieCrawler(game));
+            case 'R' -> List.of(new Floor(game), new ZombieRunner(game));
+            case 'Z' -> List.of(new Floor(game), new ZombieRegular(game));
+            case 'G' -> List.of(new Floor(game), new ZombieGiant(game));
+
+            case 'H' -> List.of(new Floor(game), new Chest(game, Item.Revolver));
+            case 'A' -> List.of(new Floor(game), new Chest(game, Item.Bandages));
+            case 'T' -> List.of(new Floor(game), new Chest(game, Item.BaseballBat));
+            case '.' -> List.of(new Floor(game));
             default -> { assert false; yield null; }
             };
 
@@ -63,9 +63,22 @@ public class GameBoard extends Matrix<GridLoc> {
             loc.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
+                    if (!loc.isEnabled()) return;
                     board.playerInput(loc);
                     board.game.finishTurn();
                     System.out.println("Novo estado:\n" + board);
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    super.mouseEntered(e);
+                    loc.setTargeted(true);
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    super.mouseExited(e);
+                    loc.setTargeted(false);
                 }
             });
         });
@@ -93,68 +106,29 @@ public class GameBoard extends Matrix<GridLoc> {
     public void playerInput(GridLoc loc) {
         assert this.player != null;
 
-        var occupants = loc.getOccupants();
-        Zombie combatTarget = null;
-        Chest chestTarget = null;
-        GridLoc moveTarget = null;
+        List<Interaction> possibleInteractions = loc.possibleInteractions(getPlayer());
 
-        enum InputValidationResult {
-            Combat(2),
-            Chest(1),
-            MoveToLoc(0),
-            Invalid(-1);
-
-            public int priority = -1;
-            InputValidationResult(int priority) {
-                this.priority = priority;
-            }
-            public boolean trumps(InputValidationResult other) {
-                return this.priority > other.priority;
-            }
-        };
-        InputValidationResult result = InputValidationResult.Invalid;
-
-        if (!occupants.isEmpty()) {
-            if (occupants.stream().noneMatch(occ -> player.canInteract(occ.getLoc()))) {
-                return;
-            }
-            for (GameObj occ : occupants) {
-                switch (occ) {
-                    case Zombie zombie -> {
-                        if (InputValidationResult.Combat.trumps(result)) {
-                            combatTarget = zombie;
-                            result = InputValidationResult.Combat;
-                        }
-                    }
-                    case Chest chest -> {
-                        if (InputValidationResult.Chest.trumps(result)) {
-                            chestTarget = chest;
-                            result = InputValidationResult.Chest;
-                        }
-                    }
-                    case Floor floor -> {
-                        if (InputValidationResult.MoveToLoc.trumps(result)) {
-                            //moveTarget = floor.getLoc();
-                            result = InputValidationResult.MoveToLoc;
-                        }
-                    }
-                    default -> {}
-                }
-            }
+        if (!possibleInteractions.isEmpty()) {
+            Interaction maxPrioInteraction = possibleInteractions.stream().max(Interaction::compareTo).orElseThrow();
+            maxPrioInteraction.run(game);
         }
-        switch (result) {
-            case InputValidationResult.Invalid -> System.err.println("Invalid player input to grid location + " + loc + "!");
-            case InputValidationResult.MoveToLoc -> swap(player.getLoc(), loc);
-            case InputValidationResult.Chest -> {
-                var oldPlayerLoc = player.getLoc();
-                loc.setOccupants(oldPlayerLoc.getOccupants());
-                oldPlayerLoc.setOccupants(List.of(new Floor())); // this is *really* ugly
-                game.chestEncounter(chestTarget);
+    }
+
+    public Set<GridLoc> getOrthogonals(GridLoc loc) {
+        Set<Dimension> offsets = Set.of(
+                new Dimension(1,0),
+                new Dimension(-1,0),
+                new Dimension(0,1),
+                new Dimension(0,-1)
+                );
+        Set<GridLoc> acc = new HashSet<>(4);
+        offsets.forEach(off -> {
+            var retrieved = this.get(loc.getCol() + off.width, loc.getRow() + off.height);
+            if (retrieved != null) {
+                acc.add(retrieved);
             }
-            case InputValidationResult.Combat -> {
-                game.combat(combatTarget);
-            }
-        }
+        });
+        return acc;
     }
 
     private static <T> void tryWriteMatrix(Matrix<T> mat) {
@@ -177,5 +151,20 @@ public class GameBoard extends Matrix<GridLoc> {
             System.err.println("read matrix error: " + e);
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("board:\n");
+        for (int y = 0; y < getRows(); y++) {
+            for (int x = 0; x < getCols(); x++) {
+                var repr = get(x,y).toString();
+                String massaged = String.format("%-30s", repr.substring(repr.indexOf(' ')));
+                sb.append(massaged);
+                sb.append(", ");
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 }
