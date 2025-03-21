@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
+import org.engcomp.Zombicide.Actors.ZombieGiant;
 import org.engcomp.Zombicide.Actors.ZombieRunner;
 import org.engcomp.Zombicide.Menu.MenuEntry;
 
@@ -88,7 +89,12 @@ public class CombatWin extends JFrame {
             System.out.println("Critical hit!");
             dmg = 2;
         }
-        attack(dmg);
+        // Check if we are trying to damage the Giant without a gun
+        if (!(foe instanceof ZombieGiant)) {
+            attack(dmg);
+        } else {
+            JOptionPane.showMessageDialog(this, "You try to kill the giant with your bare hands, but he just shrugged your blows off!");
+        }
         afterAction();
     }
 
@@ -121,6 +127,7 @@ public class CombatWin extends JFrame {
 
     protected void defend(int dmg) {
         JOptionPane.showMessageDialog(this, "lost " + dmg + " health defending from " + foe + "!");
+        player.setHealth(player.getHealth()-dmg);
         if (player.isDead()) {
             cleanUpBodies();
             setStage(CombatStage.PlayerDead);

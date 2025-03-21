@@ -18,6 +18,7 @@ public class Game extends JFrame {
         AI_ANIMATION
     }
     protected JButton loadBtn;
+    protected JFrame boardFrame;
     protected GridLayout btnGridLayout;
     protected GameBoard board = null;
     protected CombatWin combatWin = null;
@@ -102,25 +103,38 @@ public class Game extends JFrame {
     public void updateBtns() {
         board.stream().forEach(e -> {
             var target = e.val;
-            target.setEnabled(getBoard().getPlayer().canInteract(target));
+            var combatCond = combatWin == null;
+            var interactionCond = getBoard().getPlayer().canInteract(target);
+            target.setEnabled(combatCond && interactionCond);
         });
     }
 
     public void combat(Zombie zed) {
         if (combatWin != null) return;
         combatWin = new CombatWin(this, board.getPlayer(), zed);
+        updateBtns();
     }
 
     public void combatEnded(CombatWin.CombatStage stage) {
         combatWin = null;
         switch (stage) {
             case CombatWin.CombatStage.PlayerDead -> gameOver();
+            case CombatWin.CombatStage.FoeDead -> {
+                if (actors.size() == 1 && actors.get(0) instanceof Player) {
+                    gameWon();
+                }
+            }
         }
     }
 
     public void gameOver() {
         System.out.println("You died. Game over!");
         JOptionPane.showMessageDialog(this, "You died. Game Over!");
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    }
+    public void gameWon() {
+        System.out.println("You win! There are no zombies left.");
+        JOptionPane.showMessageDialog(this, "You win! There are no zombies left.");
         dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 
