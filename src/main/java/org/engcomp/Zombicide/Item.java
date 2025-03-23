@@ -1,9 +1,9 @@
 package org.engcomp.Zombicide;
 
 public enum Item {
-    Revolver("revólver"),
-    Bandages("bandagens"),
-    BaseballBat("taco de beisebol");
+    Revolver("revolver"),
+    Bandages("bandages"),
+    BaseballBat("baseball bat");
 
     final String fullName;
     Item(String fullName) {

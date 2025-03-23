@@ -13,9 +13,12 @@ import java.util.Objects;
 
 public class Player extends ActorObj {
     protected Map<Item, Integer> inventory = new HashMap<>();
+    protected int healCap;
+
     public Player(Game game) {
         super(game);
         this.health = 5;
+        this.healCap = this.health;
         this.textRepr = "Player";
         this.imgRepr = new ImageIcon(Objects.requireNonNull(getClass().getResource("idle.gif")));
     }
@@ -41,6 +44,11 @@ public class Player extends ActorObj {
         assert count > 0;
         inventory.put(item, count-1);
         reportChange();
+    }
+
+    ///  Called by the bandage logic
+    public void heal(int amount) {
+        setHealth(Math.min(getHealth()+amount, this.healCap));
     }
 
     public Map<Item, Integer> getInventory() {

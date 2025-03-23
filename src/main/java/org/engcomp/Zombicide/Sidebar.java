@@ -22,15 +22,24 @@ public class Sidebar extends Box {
         var board = game.getBoard();
 
         var upper = new Box(BoxLayout.PAGE_AXIS);
+        upper.setPreferredSize(new Dimension(280, 300));
         var title = new JLabel("Zombicide");
         upper.add(title);
         { // Inventory and health
             var health = new JLabel(); upper.add(health);
+            var bandages = new JButton("Use bandage"); upper.add(bandages);
+            bandages.addActionListener(_ -> {
+                var p = board.getPlayer();
+                p.useItem(Item.Bandages);
+                p.heal(1);
+
+            });
             var items = new JList<String>(inventoryListModel); upper.add(items);
             board.getPlayer().addChangedCallback(pUncased -> {
                 assert pUncased instanceof Player;
                 var p = (Player)pUncased;
                 health.setText("Health: " + p.getHealth());
+                bandages.setEnabled(p.canUseItem(Item.Bandages));
                 List<String> inventoryList = p.getInventory().entrySet().stream().flatMap(e -> {
                     var item = e.getKey();
                     var count = e.getValue();
@@ -43,7 +52,7 @@ public class Sidebar extends Box {
         }
         var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, upper, combatScrollPane);
         add(verticalSplit);
-        setPreferredSize(new Dimension(120, 800));
+        setPreferredSize(new Dimension(280, 800));
     }
 
     public void setCombatView(CombatWin c) {
