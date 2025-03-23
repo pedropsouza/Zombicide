@@ -8,6 +8,7 @@ import org.engcomp.Zombicide.Item;
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Player extends ActorObj {
     protected Map<Item, Integer> inventory = new HashMap<>();
@@ -15,7 +16,7 @@ public class Player extends ActorObj {
         super(owner);
         this.health = 5;
         this.textRepr = "Player";
-        this.imgRepr = new ImageIcon("assets/idle.gif");
+        this.imgRepr = new ImageIcon(Objects.requireNonNull(getClass().getResource("idle.gif")));
     }
 
     @Override

@@ -6,10 +6,8 @@ import org.engcomp.Zombicide.Interaction;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public abstract class Zombie extends ActorObj {
@@ -20,7 +18,7 @@ public abstract class Zombie extends ActorObj {
         this.hasRun = true;
         this.health = 2;
         this.textRepr = "abstract Zombie";
-        this.imgRepr = new ImageIcon("assets/zombies/idle.gif");
+        this.imgRepr = new ImageIcon(Objects.requireNonNull(getClass().getResource("Zombie/idle.gif")));
     }
 
     @Override
