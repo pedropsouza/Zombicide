@@ -9,19 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class GameObj {
-    private Game owner;
+    private Game game;
     protected boolean hasCollision = false;
     protected boolean hasRun = false;
     protected String textRepr = "abstract GameActor";
     protected ImageIcon imgRepr = null;
     protected List<ImageIcon> imgOverlays = new ArrayList<>();
 
-    public GameObj(Game owner) {
-        this.owner = owner;
+    public GameObj(Game game) {
+        this.game = game;
     }
 
-    public Game getOwner() {
-        return owner;
+    public Game getGame() {
+        return game;
     }
 
     public GridLoc getLoc() {

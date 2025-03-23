@@ -7,7 +7,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 // https://stackoverflow.com/a/46360964
@@ -115,7 +114,7 @@ public class GridLoc extends JLayeredPane {
                 g.fillRect(0,0,80,80);
             }
             g.setColor(Color.BLACK);
-            if (occupant.getOwner().isDebug()) {
+            if (occupant.getGame().isDebug()) {
                 stringsToDraw[0] += this.toString();
                 stringsToDraw[1] += "dist " + playerDistance;
             }

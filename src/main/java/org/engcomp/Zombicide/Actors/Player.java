@@ -13,8 +13,8 @@ import java.util.Objects;
 
 public class Player extends ActorObj {
     protected Map<Item, Integer> inventory = new HashMap<>();
-    public Player(Game owner) {
-        super(owner);
+    public Player(Game game) {
+        super(game);
         this.health = 5;
         this.textRepr = "Player";
         this.imgRepr = new ImageIcon(Objects.requireNonNull(getClass().getResource("idle.gif")));

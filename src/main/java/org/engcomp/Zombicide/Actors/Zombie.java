@@ -5,9 +5,7 @@ import org.engcomp.Zombicide.GridLoc;
 import org.engcomp.Zombicide.Interaction;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Stream;
 
 public abstract class Zombie extends ActorObj {
@@ -15,8 +13,8 @@ public abstract class Zombie extends ActorObj {
     private boolean inCombat = false;
     protected int attackStrength = 1;
 
-    public Zombie(Game owner) {
-        super(owner);
+    public Zombie(Game game) {
+        super(game);
         this.hasRun = true;
         this.health = 2;
         this.textRepr = "abstract Zombie";
@@ -39,7 +37,7 @@ public abstract class Zombie extends ActorObj {
     }
 
     private PriorityQueue<Interaction> possibleInteractions() {
-        Set<GridLoc> neighs = getOwner().getBoard().getOrthogonals(getLoc());
+        Set<GridLoc> neighs = getGame().getBoard().getOrthogonals(getLoc());
         PriorityQueue<Interaction> inters = new PriorityQueue<>((l,r) -> {
             return -l.compareTo(r); // reverse ordering, from highest to lowest
         });

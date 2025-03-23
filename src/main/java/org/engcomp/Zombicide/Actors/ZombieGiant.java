@@ -4,8 +4,8 @@ import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.Interaction;
 
 public class ZombieGiant extends Zombie {
-    public ZombieGiant(Game owner) {
-        super(owner);
+    public ZombieGiant(Game game) {
+        super(game);
         this.textRepr = "Giant Zombie";
         this.attackStrength = 2;
         this.health = 3;

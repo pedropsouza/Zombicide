@@ -74,7 +74,7 @@ public class GameBoard extends Matrix<GridLoc> {
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     super.mouseEntered(e);
-                    loc.setTargeted(true);
+                    loc.setTargeted(loc.isEnabled());
                     loc.repaint();
                 }
 

@@ -19,11 +19,11 @@ public abstract class ActorObj extends GameObj {
 
     protected Set<Consumer<ActorObj>> changedCallbacks = new HashSet<>();
 
-    public ActorObj(Game owner) {
-        super(owner);
+    public ActorObj(Game game) {
+        super(game);
         this.serialNum = serialNumCounter++;
         this.hasCollision = true;
-        owner.getActors().add(this);
+        game.getActors().add(this);
     }
 
     public boolean insideMoveDist(GridLoc loc) {
