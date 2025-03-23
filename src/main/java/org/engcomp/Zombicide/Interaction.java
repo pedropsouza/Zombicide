@@ -1,9 +1,6 @@
 package org.engcomp.Zombicide;
 
-import org.engcomp.Zombicide.Actors.ActorObj;
-import org.engcomp.Zombicide.Actors.Chest;
-import org.engcomp.Zombicide.Actors.Floor;
-import org.engcomp.Zombicide.Actors.Zombie;
+import org.engcomp.Zombicide.Actors.*;
 
 import java.util.List;
 
@@ -23,7 +20,7 @@ public abstract class Interaction implements Comparable<Interaction> {
         return Integer.compare(this.priority, interaction.priority);
     }
 
-    public static final class MoveToLoc extends Interaction {
+    public static class MoveToLoc extends Interaction {
         private final ActorObj actor;
         private final GridLoc loc;
         public MoveToLoc(ActorObj actor, GridLoc loc) {
@@ -45,6 +42,12 @@ public abstract class Interaction implements Comparable<Interaction> {
         @Override
         public String toString() {
             return "Move to Location " + loc.getCol() + "," + loc.getRow();
+        }
+    }
+
+    public static final class Flee extends MoveToLoc {
+        public Flee(Player p, GridLoc loc) {
+            super(p, loc);
         }
     }
 

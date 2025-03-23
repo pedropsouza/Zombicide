@@ -3,11 +3,8 @@ package org.engcomp.Zombicide;
 import org.engcomp.Zombicide.Actors.Player;
 
 import javax.swing.*;
-import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.util.List;
-import java.util.Vector;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Sidebar extends Box {
@@ -25,14 +22,21 @@ public class Sidebar extends Box {
         upper.setPreferredSize(new Dimension(280, 300));
         var title = new JLabel("Zombicide");
         upper.add(title);
+        upper.add(Box.createGlue());
         { // Inventory and health
             var health = new JLabel(); upper.add(health);
             var bandages = new JButton("Use bandage"); upper.add(bandages);
+            upper.add(Box.createGlue());
             bandages.addActionListener(_ -> {
                 var p = board.getPlayer();
                 p.useItem(Item.Bandages);
                 p.heal(1);
-
+                CombatPanel c = game.getCombat();
+                if (c != null) {
+                    c.afterAction();
+                } else {
+                    game.finishTurn();
+                }
             });
             var items = new JList<String>(inventoryListModel); upper.add(items);
             board.getPlayer().addChangedCallback(pUncased -> {
@@ -51,11 +55,12 @@ public class Sidebar extends Box {
             board.getPlayer().reportChange();
         }
         var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, upper, combatScrollPane);
+        verticalSplit.setResizeWeight(0.20);
         add(verticalSplit);
         setPreferredSize(new Dimension(280, 800));
     }
 
-    public void setCombatView(CombatWin c) {
+    public void setCombatView(CombatPanel c) {
         this.combatScrollPane.setViewportView(c);
     }
 }

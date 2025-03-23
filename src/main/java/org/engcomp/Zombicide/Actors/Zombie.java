@@ -4,6 +4,7 @@ import org.engcomp.Zombicide.Damage;
 import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.GridLoc;
 import org.engcomp.Zombicide.Interaction;
+import org.engcomp.Zombicide.utils.Pair;
 
 import javax.swing.*;
 import java.util.*;
@@ -11,7 +12,6 @@ import java.util.stream.Stream;
 
 public abstract class Zombie extends ActorObj {
     private boolean alerted = true;
-    private boolean inCombat = false;
     protected Damage attackDamage = Damage.BareHand;
 
     public Zombie(Game game) {
@@ -39,10 +39,32 @@ public abstract class Zombie extends ActorObj {
     }
 
     private PriorityQueue<Interaction> possibleInteractions() {
-        Set<GridLoc> neighs = getGame().getBoard().getOrthogonals(getLoc());
         PriorityQueue<Interaction> inters = new PriorityQueue<>((l,r) -> {
             return -l.compareTo(r); // reverse ordering, from highest to lowest
         });
+
+        var board = getGame().getBoard();
+        var sizeHeuristic = board.getCols()*board.getRows();
+        Set<GridLoc> neighs = new HashSet<>(sizeHeuristic);
+        Queue<Pair<Integer, GridLoc>> queue = new ArrayDeque<>(sizeHeuristic/10);
+        queue.add(new Pair<>(0, getLoc()));
+
+        GridLoc ourLoc = getLoc();
+        while(!queue.isEmpty()) {
+            var pair = queue.remove();
+            int dist = pair.l;
+            GridLoc loc = pair.r;
+            // stop one step before our limit, since we add neighbouring
+            // locations which will probably be +1 dist
+            var occupiedByNonPlayer = loc != ourLoc && loc.isExclusivelyOccupied() && !loc.hasPlayer();
+            if (dist > speed || occupiedByNonPlayer) continue;
+            neighs.add(loc);
+            for (var neigh : board.getOrthogonals(loc)) {
+                if (!neighs.contains(neigh)) {
+                    queue.add(new Pair<>(dist + 1, neigh));
+                }
+            }
+        }
         for (var neigh : neighs) {
             inters.addAll(
                     neigh.possibleInteractions(this)
@@ -72,14 +94,6 @@ public abstract class Zombie extends ActorObj {
             }
         }
         return desiredMove;
-    }
-
-    public boolean isInCombat() {
-        return inCombat;
-    }
-
-    public void setInCombat(boolean inCombat) {
-        this.inCombat = inCombat;
     }
 
     public Damage getAttackDamage() {

@@ -38,10 +38,15 @@ public class GridLoc extends JLayeredPane {
         return Math.abs(loc.getCol() - this.col) + Math.abs(loc.getRow() - this.row);
     }
 
-    public void setOccupants(ArrayList<GameObj> occupants) {
+    private void setOccupants(ArrayList<GameObj> occupants) {
         this.occupants = occupants;
         rebuild();
     }
+
+    public boolean hasPlayer() {
+        return this.occupants.stream().anyMatch(occ -> occ instanceof Player);
+    }
+
     private void rebuild() {
         this.occupants.forEach(o -> o.setLoc(this));
         removeAll();
@@ -78,21 +83,39 @@ public class GridLoc extends JLayeredPane {
         return occupied && anyHasCollision;
     }
 
+    public boolean isSolid() {
+        var occupied = !occupants.isEmpty();
+        return occupied && occupants.stream().anyMatch(occ -> occ instanceof Wall);
+    }
+
     public List<Interaction> possibleInteractions(ActorObj forActor) {
+        var acc = new ArrayList<Interaction>();
+        var relDist = Math.abs(this.getPlayerDistance()-forActor.getLoc().getPlayerDistance());
+        if (relDist > forActor.getSpeed()) return acc;
         var isPlayer = forActor instanceof Player;
-        var acceptingMoves = !isExclusivelyOccupied();
+        var acceptingMoves = this != forActor.getLoc() && !isExclusivelyOccupied();
         var chest = occupants.stream().flatMap(o -> (o instanceof Chest)? Stream.of((Chest)o) : Stream.empty()).findFirst();
         var actor = occupants.stream().flatMap(o -> (o instanceof ActorObj)? Stream.of((ActorObj)o) : Stream.empty()).findFirst();
-        var acc = new ArrayList<Interaction>();
-        if (acceptingMoves) acc.add(new Interaction.MoveToLoc(forActor, this));
+        if (acceptingMoves) {
+            var i = new Interaction.MoveToLoc(forActor, this);
+            if (isPlayer) {
+                Player p = (Player)forActor;
+                if (p.isInCombat() && p.getGame().getCombat().getStage() == CombatPanel.CombatStage.Fled) {
+                    i = new Interaction.Flee(p, this);
+                }
+            }
+            acc.add(i);
+        }
         if (isPlayer) { chest.ifPresent(chestObj -> acc.add(new Interaction.OpenChest(chestObj))); }
         actor.ifPresent(opponent -> {
-            if (isPlayer && opponent instanceof Zombie)
+            if (isPlayer && opponent instanceof Zombie) {
                 acc.add(new Interaction.EnterCombat(opponent));
-            if (forActor instanceof Zombie && opponent instanceof Player)
+            }
+            if (forActor instanceof Zombie && opponent instanceof Player) {
+                if (forActor.getLoc().getPlayerDistance() > 1) { return; }
                 acc.add(new Interaction.EnterCombat(forActor));
             }
-        );
+        });
         return acc;
     }
 

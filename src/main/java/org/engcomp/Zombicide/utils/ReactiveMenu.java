@@ -25,7 +25,8 @@ public class ReactiveMenu extends Menu {
             btn.addActionListener(entry.r.l);
             m.btns.add(btn);
             m.stylers.add(new Pair<>(btn, entry.r.r));
-            m.add(btn);
+            m.add(btn, m.gbc);
+            m.gbcAdvance();
         });
         m.updateAllButtons();
         return m;

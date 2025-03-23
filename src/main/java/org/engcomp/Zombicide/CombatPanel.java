@@ -6,23 +6,21 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 import java.util.function.Consumer;
 
-import org.engcomp.Zombicide.utils.Menu;
 import org.engcomp.Zombicide.utils.Pair;
 import org.engcomp.Zombicide.utils.ReactiveMenu;
 
-public class CombatWin extends Box {
+public class CombatPanel extends Panel {
     //protected Map<String, JButton> btns = new HashMap<>();
     protected Game game;
     protected JLabel attackRollInfo;
     protected JLabel defenseRollInfo;
+    protected JScrollPane combatLogListSPane;
     protected JList<String> combatLogList;
-    protected DefaultListModel<String> combatLog;
+    protected DefaultListModel<String> combatLogData;
     protected ReactiveMenu actionBtns;
     protected Player player;
     protected Zombie foe;
@@ -36,6 +34,7 @@ public class CombatWin extends Box {
     };
     protected CombatStage stage = CombatStage.Starting;
     protected boolean done = false;
+    protected GridBagConstraints gbc;
 
     protected Color successClr = Color.decode("#3c9530");
     protected Color neutralClr = Color.decode("#000000");
@@ -53,27 +52,48 @@ public class CombatWin extends Box {
             new Pair<>("Reconsider", new Pair<>(this::reconsider, this::actionButtonEnabler))
     ));
 
-    public CombatWin(Game game, Player player, Zombie foe) {
-        super(BoxLayout.PAGE_AXIS);
-        this.game = game;
-        //setSize(300, 500);
+    private void initLogs() {
+        combatLogData = game.getCombatLog();
+        combatLogList = new JList<>(combatLogData);
+        combatLogListSPane = new JScrollPane(combatLogList);
+    }
 
-        attackRollInfo = new JLabel("");
-        add(attackRollInfo);
-        defenseRollInfo = new JLabel("");
-        add(defenseRollInfo);
-        combatLog = new DefaultListModel<>();
-        combatLogList = new JList<>(combatLog);
-        add(combatLogList);
+    public CombatPanel(Game game, Player player, Zombie foe) {
+        super(new GridBagLayout());
+        setName("Combat");
+        this.game = game;
+        setSize(250, 500);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        initLogs();
+
+        attackRollInfo = new JLabel();
+        attackRollInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(attackRollInfo, gbc);
+        gbc.gridy++;
+        defenseRollInfo = new JLabel();
+        defenseRollInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(defenseRollInfo, gbc);
+        gbc.gridy++;
+
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 0.5;
+        add(combatLogListSPane, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0;
+        gbc.gridy++;
         actionBtns = ReactiveMenu.fromReactive(startEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
-        add(actionBtns);
+        add(actionBtns, gbc); // We don't update gbc cuz this'll get overwritten later
         resetDiceInfo();
         actionBtns.updateAllButtons();
 
         setVisible(true);
 
-        this.player = player;
-        this.foe = foe;
+        this.player = player; player.setInCombat(true);
+        this.foe = foe; player.setInCombat(true);
+        combatLog("— Started combat with " + foe + " —");
     }
 
 
@@ -82,14 +102,14 @@ public class CombatWin extends Box {
         resetDiceInfo();
         if (player.canUseItem(Item.Revolver)) {
             player.useItem(Item.Revolver);
-            combatLog.addElement("Bang");
+            combatLog("Bang");
             if (foe instanceof ZombieRunner) {
-                combatLog.addElement("You tried to shoot the zombie, but he was too fast for your aim!");
+                combatLog("You tried to shoot the zombie, but he was too fast for your aim!");
                 return;
             }
             attack(Damage.Piercing);
         } else {
-            combatLog.addElement("No ammo / no revolver!");
+            combatLog("No ammo / no revolver!");
             return;
         }
         afterAction();
@@ -106,7 +126,7 @@ public class CombatWin extends Box {
     public void melee(ActionEvent actionEvent) {
         resetDiceInfo();
         boolean withBat = player.canUseItem(Item.BaseballBat);
-        combatLog.addElement("Pow" + (withBat? " with bat" : " barehanded"));
+        combatLog("Pow" + (withBat? " with bat" : " barehanded"));
         var diceRoll = game.getRand().nextInt(6+1);
         var threshold = player.canUseItem(Item.BaseballBat)? 3 : 5;
         var dmg = withBat? Damage.Blunt : Damage.BareHand;
@@ -119,7 +139,7 @@ public class CombatWin extends Box {
             attackRollInfo.setForeground(neutralClr);
             diceMsg += " No.";
         }
-        combatLog.addElement(diceMsg);
+        combatLog(diceMsg);
         attackRollInfo.setText(diceMsg);
 
         attack(dmg);
@@ -146,10 +166,11 @@ public class CombatWin extends Box {
 
     protected void attack(Damage dmg) {
         var dealt = foe.dealDamage(dmg);
-        combatLog.addElement("You attacked " + foe + " for " + dealt + " damage!");
+        combatLog("You attacked " + foe + " for " + dealt + " damage!");
         if (foe.isDead()) {
             cleanUpBodies();
             setStage(CombatStage.FoeDead);
+            combatLog("You killed " + foe + "!");
         }
     }
 
@@ -159,10 +180,11 @@ public class CombatWin extends Box {
             default: return;
         }
         var taken = player.dealDamage(dmg);
-        combatLog.addElement("You lost " + taken + " health defending from " + foe + "!");
+        combatLog("You lost " + taken + " health defending from " + foe + "!");
         if (player.isDead()) {
             cleanUpBodies();
             setStage(CombatStage.PlayerDead);
+            combatLog("You died at the hands of " + foe + "!");
         }
 
     }
@@ -175,24 +197,24 @@ public class CombatWin extends Box {
         if (diceRoll > threshold) {
             defenseRollInfo.setForeground(failureClr);
             diceMsg += " Yes!";
-            combatLog.addElement(diceMsg);
+            combatLog(diceMsg);
             defend(foe.getAttackDamage());
         } else {
             defenseRollInfo.setForeground(successClr);
             diceMsg += " No!";
-            combatLog.addElement(diceMsg);
+            combatLog(diceMsg);
         }
         defenseRollInfo.setText(diceMsg);
     }
 
-    private void afterAction() {
+    public void afterAction() {
         foeTurn();
         System.out.println("player hp = " + player.getHealth() + " , " + "zombie hp = " + foe.getHealth());
         setStage(switch (getStage()) {
             case CombatStage.Starting -> {
                 remove(actionBtns);
                 actionBtns = ReactiveMenu.fromReactive(combatEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
-                add(actionBtns, BorderLayout.SOUTH);
+                add(actionBtns, gbc);
                 revalidate();
                 yield CombatStage.Started;
             }
@@ -202,6 +224,8 @@ public class CombatWin extends Box {
             case CombatStage.Reconsidered, CombatStage.Fled, CombatStage.FoeDead, CombatStage.PlayerDead -> {
                 game.combatEnded(getStage());
                 done = true;
+                player.setInCombat(false);
+                foe.setInCombat(false);
                 yield getStage();
             }
         });
@@ -228,6 +252,11 @@ public class CombatWin extends Box {
         defenseRollInfo.setForeground(neutralClr);
         attackRollInfo.setText("—");
         defenseRollInfo.setText("—");
+    }
+
+    protected void combatLog(String msg) {
+        combatLogData.addElement(game.getTurn() + ": " + msg);
+        combatLogList.ensureIndexIsVisible(combatLogData.size()-1);
     }
 
 }

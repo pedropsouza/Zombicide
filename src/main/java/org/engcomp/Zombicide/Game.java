@@ -5,7 +5,10 @@ import org.engcomp.Zombicide.utils.Pair;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -24,11 +27,13 @@ public class Game extends JFrame {
     protected JSplitPane splitPane;
     protected GridBagLayout btnGridLayout;
     protected GameBoard board = null;
-    protected CombatWin combatWin = null;
+    protected CombatPanel combatPanel = null;
+    protected DefaultListModel<String> combatLog;
     protected Random rand = new Random();
     protected List<ActorObj> actors = new ArrayList<>();
     protected boolean debug = false;
     protected GameStage stage;
+    protected int turn;
     protected Timer animationTimer;
     protected Runnable gameEndCallback;
 
@@ -39,6 +44,7 @@ public class Game extends JFrame {
         super("Zombicide");
         this.playerPerception = playerPerception;
         this.mapUrl = map;
+        this.turn = 0;
         init();
 
     }
@@ -77,22 +83,53 @@ public class Game extends JFrame {
         updateBtns();
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sidebar, boardScrollPane);
         add(splitPane);
+
+        combatLog = new DefaultListModel<>();
+        combatLog.addElement("Game start!");
         revalidate();
         repaint();
         setVisible(true);
     }
 
-    public void finishTurn() {
-        calcDistances(board.getPlayer().getLoc());
-        for (ActorObj actor : actors) {
-            Interaction i = actor.run();
-            if (i == null) continue;
-            System.out.println("got interaction " + i);
-            i.run(this);
+    public void doStage() {
+        updateBtns();
+        switch (getStage()) {
+            case GameStage.PLAYER_TURN: {
+                calcDistances();
+                break;
+            }
+            case GameStage.PLAYER_ANIMATION: {
+                //getBoard().getPlayer().animateLastInteraction();
+                break;
+            }
+            case GameStage.AI_TURN: {
+                for (ActorObj actor : actors) {
+                    Interaction i = actor.run();
+                    if (i == null) continue;
+                    System.out.println("got interaction " + i);
+                    i.run(this);
+                }
+            }
         }
+    }
+
+    public void doAllStages() {
+        setStage(GameStage.PLAYER_TURN);
+        doStage();
+        setStage(GameStage.PLAYER_ANIMATION);
+        doStage();
+        setStage(GameStage.AI_TURN);
+        doStage();
+        setStage(GameStage.AI_ANIMATION);
+        doStage();
+    }
+
+    public void finishTurn() {
+        doAllStages();
         updateBtns();
         revalidate();
         repaint();
+        turn++;
     }
 
     public void calcDistances() {
@@ -112,7 +149,7 @@ public class Game extends JFrame {
             GridLoc loc = pair.r;
             visited.add(loc);
 
-            if (loc != startLoc && loc.occupants.stream().anyMatch(GameObj::hasCollision)) continue;
+            if (loc != startLoc && loc.isSolid()) continue;
             loc.setPlayerDistance(dist);
 
             for (var neigh : board.getOrthogonals(loc)) {
@@ -125,24 +162,24 @@ public class Game extends JFrame {
     public void updateBtns() {
         board.stream().forEach(e -> {
             var target = e.val;
-            var combatCond = combatWin == null;
+            var combatCond = combatPanel == null;
             var interactionCond = getBoard().getPlayer().canInteract(target);
             target.setEnabled(combatCond && interactionCond);
         });
     }
 
     public void combat(Zombie zed) {
-        if (combatWin != null) return;
-        combatWin = new CombatWin(this, board.getPlayer(), zed);
-        sidebar.setCombatView(combatWin);
+        if (combatPanel != null) return;
+        combatPanel = new CombatPanel(this, board.getPlayer(), zed);
+        sidebar.setCombatView(combatPanel);
         updateBtns();
     }
 
-    public void combatEnded(CombatWin.CombatStage stage) {
-        combatWin = null;
+    public void combatEnded(CombatPanel.CombatStage stage) {
+        combatPanel = null;
         switch (stage) {
-            case CombatWin.CombatStage.PlayerDead -> gameOver();
-            case CombatWin.CombatStage.FoeDead -> {
+            case CombatPanel.CombatStage.PlayerDead -> gameOver();
+            case CombatPanel.CombatStage.FoeDead -> {
                 if (actors.size() == 1 && actors.getFirst() instanceof Player) {
                     gameWon();
                 }
@@ -167,12 +204,28 @@ public class Game extends JFrame {
         board.getPlayer().addItemToInventory(c.getItem());
     }
 
+    public int getTurn() {
+        return turn;
+    }
+
+    public GameStage getStage() {
+        return stage;
+    }
+
+    public void setStage(GameStage stage) {
+        this.stage = stage;
+    }
+
     public GameBoard getBoard() {
         return board;
     }
 
     public Random getRand() {
         return rand;
+    }
+
+    public CombatPanel getCombat() {
+        return combatPanel;
     }
 
     public List<ActorObj> getActors() {
@@ -193,6 +246,10 @@ public class Game extends JFrame {
         loc.mutateOcuppants(occupants -> {
             occupants.remove(actor);
         });
+    }
+
+    public DefaultListModel<String> getCombatLog() {
+        return combatLog;
     }
 
     public void setGameEndCallback(Runnable gameEndCallback) {

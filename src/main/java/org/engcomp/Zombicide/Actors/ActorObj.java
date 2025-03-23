@@ -17,6 +17,7 @@ public abstract class ActorObj extends GameObj {
     protected int speed = 1;
     protected int perception = 1;
     protected int concealment = 0;
+    private boolean inCombat = false;
     protected Set<Damage> negatedDamages = new HashSet<>();
 
     protected Set<Consumer<ActorObj>> changedCallbacks = new HashSet<>();
@@ -34,10 +35,6 @@ public abstract class ActorObj extends GameObj {
         var prev = getHealth();
         setHealth(prev - d.strength);
         return d.strength;
-    }
-
-    public boolean insideMoveDist(GridLoc loc) {
-        return this.loc.taxiCabDistance(loc) <= this.speed;
     }
 
     public int getPerception() {
@@ -82,6 +79,15 @@ public abstract class ActorObj extends GameObj {
 
     protected int getSerialNum() {
         return serialNum;
+    }
+
+    public boolean isInCombat() {
+        return inCombat;
+    }
+
+    public void setInCombat(boolean inCombat) {
+        this.inCombat = inCombat;
+        reportChange();
     }
 
     public void addChangedCallback(Consumer<ActorObj> callback) {

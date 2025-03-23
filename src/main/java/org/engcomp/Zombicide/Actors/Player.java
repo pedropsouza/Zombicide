@@ -24,9 +24,7 @@ public class Player extends ActorObj {
     }
 
     public boolean canInteract(GridLoc loc) {
-        var withinDist = loc.getPlayerDistance() <= speed;
-        var hasInteractions = !loc.possibleInteractions(this).isEmpty();
-        return withinDist && hasInteractions;
+        return !loc.possibleInteractions(this).isEmpty();
     }
 
     public void addItemToInventory(Item item) {
