@@ -1,4 +1,4 @@
-10 10
+10 11
 H . X . A . X . . H
 X C . X C X . R X X
 C X . . . . . X . C
