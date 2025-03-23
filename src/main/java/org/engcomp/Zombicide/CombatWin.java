@@ -1,7 +1,6 @@
 package org.engcomp.Zombicide;
 
-import org.engcomp.Zombicide.Actors.ActorObj;
-import org.engcomp.Zombicide.Actors.Player;
+import org.engcomp.Zombicide.Actors.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,16 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
-import org.engcomp.Zombicide.Actors.ZombieGiant;
-import org.engcomp.Zombicide.Actors.ZombieRunner;
-import org.engcomp.Zombicide.Menu.MenuEntry;
+import org.engcomp.Zombicide.utils.Menu;
+import org.engcomp.Zombicide.utils.Menu.MenuEntry;
 
-public class CombatWin extends JFrame {
+public class CombatWin extends Box {
     //protected Map<String, JButton> btns = new HashMap<>();
     protected Game game;
+    protected JLabel diceRollInfo;
+    protected JList<String> combatLogList;
+    protected DefaultListModel<String> combatLog;
     protected Menu actionBtns;
     protected Player player;
-    protected ActorObj foe;
+    protected Zombie foe;
     public enum CombatStage {
         Starting,
         Started,
@@ -43,17 +44,18 @@ public class CombatWin extends JFrame {
             new MenuEntry("Reconsider", this::reconsider),
     };
 
-    public CombatWin(Game game, Player player, ActorObj foe) {
-        super("Zombicide Combat");
+    public CombatWin(Game game, Player player, Zombie foe) {
+        super(BoxLayout.PAGE_AXIS);
         this.game = game;
-        var layout = new BorderLayout();
-        setLayout(layout);
-        setSize(300, 500);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        //setSize(300, 500);
 
-
+        diceRollInfo = new JLabel("-- ROLL --");
+        add(diceRollInfo);
+        combatLog = new DefaultListModel<>();
+        combatLogList = new JList<>(combatLog);
+        add(combatLogList);
         actionBtns = new Menu(Arrays.stream(startEntries), BoxLayout.LINE_AXIS, new JLabel("Actions"));
-        add(actionBtns, BorderLayout.SOUTH);
+        add(actionBtns);
 
         setVisible(true);
 
@@ -66,34 +68,35 @@ public class CombatWin extends JFrame {
     private void shoot(ActionEvent actionEvent) {
         if (player.canUseItem(Item.Revolver)) {
             player.useItem(Item.Revolver);
-            System.out.println("Bang");
+            combatLog.addElement("Bang");
             if (foe instanceof ZombieRunner) {
-                System.out.println("You tried to shoot the zombie, but he was too fast for your aim!");
+                combatLog.addElement("You tried to shoot the zombie, but he was too fast for your aim!");
                 return;
             }
             final int dmg = 2;
             attack(dmg);
         } else {
-            System.out.println("No ammo / no revolver!");
+            combatLog.addElement("No ammo / no revolver!");
             return;
         }
         afterAction();
     }
 
     public void melee(ActionEvent actionEvent) {
-        System.out.println("Pow" + ((player.canUseItem(Item.BaseballBat))? " with bat" : ""));
+        boolean withBat = player.canUseItem(Item.BaseballBat);
+        combatLog.addElement("Pow" + (withBat? " with bat" : " barehanded"));
         var diceRoll = game.getRand().nextInt(6+1);
         var threshold = player.canUseItem(Item.BaseballBat)? 3 : 5;
         var dmg = 1;
         if (diceRoll > threshold) {
-            System.out.println("Critical hit!");
+            combatLog.addElement("Critical hit!");
             dmg = 2;
         }
         // Check if we are trying to damage the Giant without a gun
         if (!(foe instanceof ZombieGiant)) {
             attack(dmg);
         } else {
-            JOptionPane.showMessageDialog(this, "You try to kill the giant with your bare hands, but he just shrugged your blows off!");
+            combatLog.addElement("You try to kill the giant with your bare hands, but he just shrugged your blows off!");
         }
         afterAction();
     }
@@ -117,7 +120,7 @@ public class CombatWin extends JFrame {
     }
 
     protected void attack(int dmg) {
-        JOptionPane.showMessageDialog(this, "attacked " + foe + " for " + dmg + " damage!");
+        combatLog.addElement("You attacked " + foe + " for " + dmg + " damage!");
         foe.setHealth(foe.getHealth() - dmg);
         if (foe.isDead()) {
             cleanUpBodies();
@@ -126,7 +129,7 @@ public class CombatWin extends JFrame {
     }
 
     protected void defend(int dmg) {
-        JOptionPane.showMessageDialog(this, "lost " + dmg + " health defending from " + foe + "!");
+        combatLog.addElement("You lost " + dmg + " health defending from " + foe + "!");
         player.setHealth(player.getHealth()-dmg);
         if (player.isDead()) {
             cleanUpBodies();
@@ -139,7 +142,7 @@ public class CombatWin extends JFrame {
         int diceRoll = game.getRand().nextInt(3+1);
         int threshold = game.getBoard().getPlayer().getPerception();
         if (diceRoll > threshold) {
-            defend(1);
+            defend(foe.getAttackStrength());
         }
     }
 
@@ -160,7 +163,6 @@ public class CombatWin extends JFrame {
             }
             case CombatStage.Reconsidered, CombatStage.Fled, CombatStage.FoeDead, CombatStage.PlayerDead -> {
                 game.combatEnded(getStage());
-                dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
                 yield getStage();
             }
             default -> getStage();

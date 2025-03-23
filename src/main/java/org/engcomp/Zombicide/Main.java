@@ -1,8 +1,8 @@
 package org.engcomp.Zombicide;
 
+import org.engcomp.Zombicide.utils.Menu;
+
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
 
@@ -11,8 +11,8 @@ public class Main {
     static int percepcao = 2;
 
     private static class MainMenu extends JFrame {
-        private Menu menu;
-        private Menu difficultyMenu;
+        private org.engcomp.Zombicide.utils.Menu menu;
+        private org.engcomp.Zombicide.utils.Menu difficultyMenu;
         private Box box;
         public MainMenu() {
             super("Zombicide Main Menu");
@@ -21,45 +21,45 @@ public class Main {
             setDefaultCloseOperation(EXIT_ON_CLOSE);
             setSize(300, 250);
             { // Menu de dificuldade
-                Menu.MenuEntry[] entries = {
-                        new Menu.MenuEntry("Fácil", _ -> {
+                org.engcomp.Zombicide.utils.Menu.MenuEntry[] entries = {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("Fácil", _ -> {
                             percepcao = 3;
                         }),
-                        new Menu.MenuEntry("Normal", _ -> {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("Normal", _ -> {
                             percepcao = 2;
                         }),
-                        new Menu.MenuEntry("Difícil", _ -> {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("Difícil", _ -> {
                             percepcao = 1;
                         }),
                 };
-                difficultyMenu = new Menu(
+                difficultyMenu = new org.engcomp.Zombicide.utils.Menu(
                         Arrays.stream(entries),
                         BoxLayout.PAGE_AXIS,
                         new JLabel("Dificuldade")
                 );
             }
             { // Menu de inicio
-                Menu.MenuEntry[] entries = {
-                        new Menu.MenuEntry("Start", _ -> {
+                org.engcomp.Zombicide.utils.Menu.MenuEntry[] entries = {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("Start", _ -> {
                             game = new Game(getClass().getResource("matrix.txt"), percepcao);
                             setVisible(false);
                         }),
-                        new Menu.MenuEntry("DEBUG", _ -> {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("DEBUG", _ -> {
                             game = new Game(getClass().getResource("matrix.txt"), percepcao);
                             game.setDebug(true);
                             setVisible(false);
                         }),
-                        new Menu.MenuEntry("DEBUG MAP", _ -> {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("DEBUG MAP", _ -> {
                             game = new Game(getClass().getResource("testmap.txt"), percepcao);
                             game.setDebug(true);
                             setVisible(false);
                         }),
-                        new Menu.MenuEntry("SINGLE ZED MAP", _ -> {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("SINGLE ZED MAP", _ -> {
                             game = new Game(getClass().getResource("matrix_single_z.txt"), percepcao);
                             game.setDebug(true);
                             setVisible(false);
                         }),
-                        new Menu.MenuEntry("Exit", _ -> {
+                        new org.engcomp.Zombicide.utils.Menu.MenuEntry("Exit", _ -> {
                             dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
                         }),
                 };

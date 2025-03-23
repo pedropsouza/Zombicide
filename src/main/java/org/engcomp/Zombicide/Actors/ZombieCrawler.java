@@ -7,5 +7,6 @@ public class ZombieCrawler extends Zombie {
     public ZombieCrawler(Game owner) {
         super(owner);
         this.textRepr = "Crawling Zombie";
+        this.health = 1;
     }
 }

@@ -1,16 +1,15 @@
 package org.engcomp.Zombicide;
 
 import org.engcomp.Zombicide.Actors.*;
+import org.engcomp.Zombicide.utils.Pair;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.net.URL;
-import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
-import java.util.function.Consumer;
 
 public class Game extends JFrame {
     public enum GameStage {
@@ -21,7 +20,7 @@ public class Game extends JFrame {
     }
     protected JButton loadBtn;
     protected JScrollPane boardScrollPane;
-    protected Box sidebar;
+    protected Sidebar sidebar;
     protected JSplitPane splitPane;
     protected GridLayout btnGridLayout;
     protected GameBoard board = null;
@@ -52,7 +51,7 @@ public class Game extends JFrame {
             board.stream().forEach(e -> boardPanel.add(e.val));
             btnGridLayout = new GridLayout(board.getRows(), board.getCols());
             boardPanel.setLayout(btnGridLayout);
-            btnGridLayout.preferredLayoutSize(boardPanel);
+            boardPanel.setPreferredSize(new Dimension(80*getBoard().getCols(), 80*getBoard().getRows()));
             boardPanel.setVisible(true);
         }
 
@@ -119,11 +118,13 @@ public class Game extends JFrame {
     public void combat(Zombie zed) {
         if (combatWin != null) return;
         combatWin = new CombatWin(this, board.getPlayer(), zed);
+        sidebar.setCombatView(combatWin);
         updateBtns();
     }
 
     public void combatEnded(CombatWin.CombatStage stage) {
         combatWin = null;
+        sidebar.setCombatView(null);
         switch (stage) {
             case CombatWin.CombatStage.PlayerDead -> gameOver();
             case CombatWin.CombatStage.FoeDead -> {

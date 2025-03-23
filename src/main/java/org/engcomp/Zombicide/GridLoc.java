@@ -17,11 +17,14 @@ public class GridLoc extends JLayeredPane {
     protected int playerDistance = 0;
     protected List<GameObj> occupants = new ArrayList<>();
     protected boolean targeted = false;
+    protected ImageIcon targetedOverlay = new ImageIcon(Objects.requireNonNull(getClass().getResource("target.png")));
 
     public GridLoc(List<GameObj> occupants, int col, int row) {
         super();
         this.setOccupants(occupants); this.col = col; this.row = row;
-        setPreferredSize(new Dimension(80, 80));
+        var dims = new Dimension(80, 80);
+        setSize(dims);
+        setPreferredSize(dims);
     }
 
     public int getCol() {
@@ -120,6 +123,9 @@ public class GridLoc extends JLayeredPane {
                 if (!stringsToDraw[i].isEmpty()) {
                     g.drawString(stringsToDraw[i], 0, 40 + i * 12);
                 }
+            }
+            if (isTargeted()) {
+                g.drawImage(targetedOverlay.getImage(), 0, 0, this);
             }
         }
     }

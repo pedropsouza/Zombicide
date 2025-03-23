@@ -13,17 +13,20 @@ import java.util.stream.Stream;
 public class Sidebar extends Box {
     private final Game game;
     private final DefaultListModel<String> inventoryListModel = new DefaultListModel<>();
+    private JScrollPane combatScrollPane;
 
     public Sidebar(Game game) {
         super(BoxLayout.PAGE_AXIS);
         this.game = game;
+        this.combatScrollPane = new JScrollPane();
         var board = game.getBoard();
 
+        var upper = new Box(BoxLayout.PAGE_AXIS);
         var title = new JLabel("Zombicide");
-        add(title);
+        upper.add(title);
         { // Inventory and health
-            var health = new JLabel(); add(health);
-            var items = new JList<String>(inventoryListModel); add(items);
+            var health = new JLabel(); upper.add(health);
+            var items = new JList<String>(inventoryListModel); upper.add(items);
             board.getPlayer().addChangedCallback(pUncased -> {
                 assert pUncased instanceof Player;
                 var p = (Player)pUncased;
@@ -38,6 +41,12 @@ public class Sidebar extends Box {
             });
             board.getPlayer().reportChange();
         }
+        var verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, upper, combatScrollPane);
+        add(verticalSplit);
         setPreferredSize(new Dimension(120, 800));
+    }
+
+    public void setCombatView(CombatWin c) {
+        this.combatScrollPane.setViewportView(c);
     }
 }

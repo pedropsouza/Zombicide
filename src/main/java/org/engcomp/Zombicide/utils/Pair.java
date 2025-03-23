@@ -1,4 +1,4 @@
-package org.engcomp.Zombicide;
+package org.engcomp.Zombicide.utils;
 
 public class Pair<T, U> {
     public T l;

@@ -7,6 +7,8 @@ public class ZombieGiant extends Zombie {
     public ZombieGiant(Game owner) {
         super(owner);
         this.textRepr = "Giant Zombie";
+        this.attackStrength = 2;
+        this.health = 3;
     }
 
     @Override

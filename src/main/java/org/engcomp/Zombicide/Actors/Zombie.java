@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 public abstract class Zombie extends ActorObj {
     private boolean alerted = true;
     private boolean inCombat = false;
+    protected int attackStrength = 1;
+
     public Zombie(Game owner) {
         super(owner);
         this.hasRun = true;
@@ -79,5 +81,9 @@ public abstract class Zombie extends ActorObj {
 
     public void setInCombat(boolean inCombat) {
         this.inCombat = inCombat;
+    }
+
+    public int getAttackStrength() {
+        return attackStrength;
     }
 }

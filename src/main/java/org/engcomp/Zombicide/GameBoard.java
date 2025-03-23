@@ -1,5 +1,6 @@
 package org.engcomp.Zombicide;
 import org.engcomp.Zombicide.Actors.*;
+import org.engcomp.Zombicide.utils.Matrix;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -10,8 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
@@ -76,12 +75,14 @@ public class GameBoard extends Matrix<GridLoc> {
                 public void mouseEntered(MouseEvent e) {
                     super.mouseEntered(e);
                     loc.setTargeted(true);
+                    loc.repaint();
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
                     super.mouseExited(e);
                     loc.setTargeted(false);
+                    loc.repaint();
                 }
             });
         });
@@ -134,20 +135,9 @@ public class GameBoard extends Matrix<GridLoc> {
         return acc;
     }
 
-    private static <T> void tryWriteMatrix(Matrix<T> mat) {
-        try {
-            File matFile = new File("matrix.txt");
-            FileWriter writer = new FileWriter(matFile);
-            writer.write(mat.stringSerialize(Object::toString));
-            writer.flush();
-            writer.close();
-        } catch (Exception e) {
-            /* ignore */
-        }
-    }
     private static <T> Matrix<T> tryReadMatrix(InputStream in, Function<String, T> deserFunc) {
         try {
-            String data = new String(in.readAllBytes(), "UTF-8");
+            String data = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             return Matrix.stringDeserialize((Class<T>) Character.TYPE, deserFunc, data);
         } catch (Exception e) {
             /* ignore */

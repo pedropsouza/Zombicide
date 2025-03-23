@@ -1,13 +1,8 @@
-package org.engcomp.Zombicide;
-
-import org.engcomp.Zombicide.Actors.Chest;
-import org.engcomp.Zombicide.Actors.Zombie;
+package org.engcomp.Zombicide.utils;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class Menu extends Box {

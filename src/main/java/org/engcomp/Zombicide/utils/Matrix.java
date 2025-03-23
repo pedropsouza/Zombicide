@@ -1,4 +1,4 @@
-package org.engcomp.Zombicide;
+package org.engcomp.Zombicide.utils;
 
 import java.io.*;
 import java.util.ArrayList;
