@@ -3,6 +3,11 @@ package org.engcomp.Zombicide.Actors;
 import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.GridLoc;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+
 public abstract class ActorObj extends GameObj {
     private static int serialNumCounter = 0;
     private final int serialNum;
@@ -11,6 +16,8 @@ public abstract class ActorObj extends GameObj {
     protected int speed = 1;
     protected int perception = 1;
     protected int concealment = 0;
+
+    protected Set<Consumer<ActorObj>> changedCallbacks = new HashSet<>();
 
     public ActorObj(Game owner) {
         super(owner);
@@ -29,6 +36,7 @@ public abstract class ActorObj extends GameObj {
 
     public void setPerception(int perception) {
         this.perception = perception;
+        reportChange();
     }
 
     public int getConcealment() {
@@ -37,6 +45,7 @@ public abstract class ActorObj extends GameObj {
 
     public void setConcealment(int concealment) {
         this.concealment = concealment;
+        reportChange();
     }
 
     public int getHealth() {
@@ -45,6 +54,7 @@ public abstract class ActorObj extends GameObj {
 
     public void setHealth(int health) {
         this.health = health;
+        reportChange();
     }
 
     public boolean isDead() {
@@ -57,10 +67,23 @@ public abstract class ActorObj extends GameObj {
 
     public void setSpeed(int speed) {
         this.speed = speed;
+        reportChange();
     }
 
     protected int getSerialNum() {
         return serialNum;
+    }
+
+    public void addChangedCallback(Consumer<ActorObj> callback) {
+        changedCallbacks.add(callback);
+    }
+
+    public void removeChangedCallback(Consumer<ActorObj> callback) {
+        changedCallbacks.remove(callback);
+    }
+
+    public void reportChange() {
+        changedCallbacks.forEach(c -> c.accept(this));
     }
 
     @Override

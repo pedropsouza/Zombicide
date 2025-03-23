@@ -6,6 +6,7 @@ import org.engcomp.Zombicide.Interaction;
 import org.engcomp.Zombicide.Item;
 
 import javax.swing.*;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -19,11 +20,6 @@ public class Player extends ActorObj {
         this.imgRepr = new ImageIcon(Objects.requireNonNull(getClass().getResource("idle.gif")));
     }
 
-    @Override
-    public Interaction run() {
-        return super.run();
-    }
-
     public boolean canInteract(GridLoc loc) {
         var withinDist = loc.getPlayerDistance() <= speed;
         var hasInteractions = !loc.possibleInteractions(this).isEmpty();
@@ -33,6 +29,7 @@ public class Player extends ActorObj {
     public void addItemToInventory(Item item) {
         var count = inventory.getOrDefault(item, 0);
         inventory.put(item, count+1);
+        reportChange();
     }
     public boolean canUseItem(Item item) {
         var count = inventory.getOrDefault(item, 0);
@@ -43,6 +40,11 @@ public class Player extends ActorObj {
         var count = inventory.get(item);
         assert count > 0;
         inventory.put(item, count-1);
+        reportChange();
+    }
+
+    public Map<Item, Integer> getInventory() {
+        return Collections.unmodifiableMap(inventory);
     }
 
     @Override

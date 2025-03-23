@@ -5,10 +5,12 @@ import org.engcomp.Zombicide.Actors.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
+import java.util.function.Consumer;
 
 public class Game extends JFrame {
     public enum GameStage {
@@ -18,7 +20,9 @@ public class Game extends JFrame {
         AI_ANIMATION
     }
     protected JButton loadBtn;
-    protected JFrame boardFrame;
+    protected JScrollPane boardScrollPane;
+    protected Box sidebar;
+    protected JSplitPane splitPane;
     protected GridLayout btnGridLayout;
     protected GameBoard board = null;
     protected CombatWin combatWin = null;
@@ -28,21 +32,36 @@ public class Game extends JFrame {
     protected GameStage stage;
     protected Timer animationTimer;
 
-    public Game(String map, int playerPerception) {
+    public Game(URL map, int playerPerception) {
         super("Zombicide");
         loadBtn = new JButton("load");
-        setSize(800, 800);
-        setMaximumSize(new Dimension(800, 800));
+        Dimension windowDims = new Dimension(800, 800);
+        setSize(windowDims);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        var path = FileSystems.getDefault().getPath(".", map);
-        board = GameBoard.load(this, path);
-        board.stream().forEach(e -> add(e.val));
-        board.getPlayer().setPerception(playerPerception);
-        System.out.println(board);
-        btnGridLayout = new GridLayout(board.getRows(), board.getCols());
-        setLayout(btnGridLayout);
+
+        try {
+            board = GameBoard.load(this, map);
+            board.getPlayer().setPerception(playerPerception);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error loading map: " + e.getLocalizedMessage());
+            throw new RuntimeException("Error loading map");
+        }
+        { // Setup board panel
+            var boardPanel = new JPanel();
+            boardScrollPane = new JScrollPane(boardPanel);
+            board.stream().forEach(e -> boardPanel.add(e.val));
+            btnGridLayout = new GridLayout(board.getRows(), board.getCols());
+            boardPanel.setLayout(btnGridLayout);
+            btnGridLayout.preferredLayoutSize(boardPanel);
+            boardPanel.setVisible(true);
+        }
+
+        this.sidebar = new Sidebar(this);
+
         calcDistances();
         updateBtns();
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sidebar, boardScrollPane);
+        add(splitPane);
         revalidate();
         repaint();
         setVisible(true);

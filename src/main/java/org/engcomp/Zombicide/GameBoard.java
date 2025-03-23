@@ -6,6 +6,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,8 +32,8 @@ public class GameBoard extends Matrix<GridLoc> {
         this.game = game;
     }
 
-    public static GameBoard load(Game game, Path boardFile) {
-        var charMatrix = tryReadMatrix(boardFile, e -> (char) e.getBytes(StandardCharsets.UTF_8)[0]);
+    public static GameBoard load(Game game, URL boardFile) throws IOException {
+        var charMatrix = tryReadMatrix(boardFile.openStream(), e -> (char) e.getBytes(StandardCharsets.UTF_8)[0]);
         assert charMatrix != null;
         Player p = null;
         ArrayList<GridLoc> data = new ArrayList<>();
@@ -142,9 +145,9 @@ public class GameBoard extends Matrix<GridLoc> {
             /* ignore */
         }
     }
-    private static <T> Matrix<T> tryReadMatrix(Path p, Function<String, T> deserFunc) {
+    private static <T> Matrix<T> tryReadMatrix(InputStream in, Function<String, T> deserFunc) {
         try {
-            String data = String.join("\n", Files.readAllLines(p));
+            String data = new String(in.readAllBytes(), "UTF-8");
             return Matrix.stringDeserialize((Class<T>) Character.TYPE, deserFunc, data);
         } catch (Exception e) {
             /* ignore */
