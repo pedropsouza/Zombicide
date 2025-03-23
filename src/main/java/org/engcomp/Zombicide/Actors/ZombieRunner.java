@@ -1,5 +1,6 @@
 package org.engcomp.Zombicide.Actors;
 
+import org.engcomp.Zombicide.Damage;
 import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.Interaction;
 
@@ -8,5 +9,6 @@ public class ZombieRunner extends Zombie {
         super(game);
         this.textRepr = "Runner Zombie";
         this.speed = 2;
+        this.negatedDamages.add(Damage.Piercing);
     }
 }

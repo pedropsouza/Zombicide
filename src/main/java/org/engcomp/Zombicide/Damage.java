@@ -1,4 +1,4 @@
-package org.engcomp.Zombicide.utils;
+package org.engcomp.Zombicide;
 
 public enum Damage {
     Critical(2),

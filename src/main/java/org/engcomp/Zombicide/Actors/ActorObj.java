@@ -1,5 +1,6 @@
 package org.engcomp.Zombicide.Actors;
 
+import org.engcomp.Zombicide.Damage;
 import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.GridLoc;
 
@@ -16,6 +17,7 @@ public abstract class ActorObj extends GameObj {
     protected int speed = 1;
     protected int perception = 1;
     protected int concealment = 0;
+    protected Set<Damage> negatedDamages = new HashSet<>();
 
     protected Set<Consumer<ActorObj>> changedCallbacks = new HashSet<>();
 
@@ -24,6 +26,14 @@ public abstract class ActorObj extends GameObj {
         this.serialNum = serialNumCounter++;
         this.hasCollision = true;
         game.getActors().add(this);
+    }
+
+    ///  Returns the damage dealt
+    public int dealDamage(Damage d) {
+        if (negatedDamages.contains(d)) { return 0; }
+        var prev = getHealth();
+        setHealth(prev - d.strength);
+        return d.strength;
     }
 
     public boolean insideMoveDist(GridLoc loc) {

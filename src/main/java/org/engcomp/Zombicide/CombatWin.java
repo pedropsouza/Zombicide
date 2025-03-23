@@ -73,8 +73,7 @@ public class CombatWin extends Box {
                 combatLog.addElement("You tried to shoot the zombie, but he was too fast for your aim!");
                 return;
             }
-            final int dmg = 2;
-            attack(dmg);
+            attack(Damage.Piercing);
         } else {
             combatLog.addElement("No ammo / no revolver!");
             return;
@@ -87,17 +86,13 @@ public class CombatWin extends Box {
         combatLog.addElement("Pow" + (withBat? " with bat" : " barehanded"));
         var diceRoll = game.getRand().nextInt(6+1);
         var threshold = player.canUseItem(Item.BaseballBat)? 3 : 5;
-        var dmg = 1;
+        var dmg = withBat? Damage.Blunt : Damage.BareHand;
         if (diceRoll > threshold) {
             combatLog.addElement("Critical hit!");
-            dmg = 2;
+            dmg = Damage.Critical;
         }
-        // Check if we are trying to damage the Giant without a gun
-        if (!(foe instanceof ZombieGiant)) {
-            attack(dmg);
-        } else {
-            combatLog.addElement("You try to kill the giant with your bare hands, but he just shrugged your blows off!");
-        }
+
+        attack(dmg);
         afterAction();
     }
 
@@ -119,18 +114,18 @@ public class CombatWin extends Box {
         this.stage = stage;
     }
 
-    protected void attack(int dmg) {
-        combatLog.addElement("You attacked " + foe + " for " + dmg + " damage!");
-        foe.setHealth(foe.getHealth() - dmg);
+    protected void attack(Damage dmg) {
+        var dealt = foe.dealDamage(dmg);
+        combatLog.addElement("You attacked " + foe + " for " + dealt + " damage!");
         if (foe.isDead()) {
             cleanUpBodies();
             setStage(CombatStage.FoeDead);
         }
     }
 
-    protected void defend(int dmg) {
-        combatLog.addElement("You lost " + dmg + " health defending from " + foe + "!");
-        player.setHealth(player.getHealth()-dmg);
+    protected void defend(Damage dmg) {
+        var taken = player.dealDamage(dmg);
+        combatLog.addElement("You lost " + taken + " health defending from " + foe + "!");
         if (player.isDead()) {
             cleanUpBodies();
             setStage(CombatStage.PlayerDead);
@@ -142,7 +137,7 @@ public class CombatWin extends Box {
         int diceRoll = game.getRand().nextInt(3+1);
         int threshold = game.getBoard().getPlayer().getPerception();
         if (diceRoll > threshold) {
-            defend(foe.getAttackStrength());
+            defend(foe.getAttackDamage());
         }
     }
 

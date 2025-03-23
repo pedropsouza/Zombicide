@@ -1,5 +1,6 @@
 package org.engcomp.Zombicide.Actors;
 
+import org.engcomp.Zombicide.Damage;
 import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.GridLoc;
 import org.engcomp.Zombicide.Interaction;
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
 public abstract class Zombie extends ActorObj {
     private boolean alerted = true;
     private boolean inCombat = false;
-    protected int attackStrength = 1;
+    protected Damage attackDamage = Damage.BareHand;
 
     public Zombie(Game game) {
         super(game);
@@ -19,6 +20,7 @@ public abstract class Zombie extends ActorObj {
         this.health = 2;
         this.textRepr = "abstract Zombie";
         this.imgRepr = new ImageIcon(Objects.requireNonNull(getClass().getResource("Zombie/idle.gif")));
+        this.negatedDamages.add(Damage.BareHand);
     }
 
     @Override
@@ -69,7 +71,6 @@ public abstract class Zombie extends ActorObj {
                 desiredMove = move;
             }
         }
-        System.out.println(this + " @ loc " + getLoc() + " wants to " + desiredMove);
         return desiredMove;
     }
 
@@ -81,7 +82,7 @@ public abstract class Zombie extends ActorObj {
         this.inCombat = inCombat;
     }
 
-    public int getAttackStrength() {
-        return attackStrength;
+    public Damage getAttackDamage() {
+        return attackDamage;
     }
 }
