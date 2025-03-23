@@ -179,6 +179,8 @@ public class Game extends JFrame {
     public void removeActor(ActorObj actor) {
         this.actors = actors.stream().filter(a -> a != actor).toList();
         var loc = actor.getLoc();
-        loc.setOccupants(loc.getOccupants().stream().filter(occ -> occ != actor).toList());
+        loc.mutateOcuppants(occupants -> {
+            occupants.remove(actor);
+        });
     }
 }

@@ -90,4 +90,15 @@ public abstract class ActorObj extends GameObj {
     public String toString() {
         return super.toString() + " #" + getSerialNum();
     }
+
+    public void moveTo(GridLoc loc) {
+        var board = getGame().getBoard();
+        var prevLoc = getLoc();
+        prevLoc.mutateOcuppants(occupants -> {
+            occupants.remove(this);
+        });
+        loc.mutateOcuppants(occupants -> {
+            occupants.add(this);
+        });
+    }
 }

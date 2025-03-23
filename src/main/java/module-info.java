@@ -1,5 +1,6 @@
 module org.engcomp.Zombicide {
     requires java.desktop;
+    requires io.github.classgraph;
 
 
     exports org.engcomp.Zombicide;

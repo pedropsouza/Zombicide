@@ -55,7 +55,7 @@ public class GameBoard extends Matrix<GridLoc> {
             default -> { assert false; yield null; }
             };
 
-            var loc = new GridLoc(objs, entry.idx.col, entry.idx.row);
+            var loc = new GridLoc(new ArrayList<>(objs), entry.idx.col, entry.idx.row);
             objs.forEach(obj -> obj.setLoc(loc));
             data.add(loc);
         }
@@ -99,12 +99,6 @@ public class GameBoard extends Matrix<GridLoc> {
 
     public void setPlayer(Player player) {
         this.player = player;
-    }
-
-    public void swap(GridLoc a, GridLoc b) {
-        var temp = a.getOccupants();
-        a.setOccupants(b.getOccupants());
-        b.setOccupants(temp);
     }
 
     public void playerInput(GridLoc loc) {

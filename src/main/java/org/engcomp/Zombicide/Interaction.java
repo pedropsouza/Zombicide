@@ -34,10 +34,7 @@ public abstract class Interaction implements Comparable<Interaction> {
 
         @Override
         public void run(Game game) {
-            game.getBoard().swap(
-                    getActor().getLoc(),
-                    getTargetLoc()
-                    );
+            actor.moveTo(loc);
         }
 
         public ActorObj getActor() { return actor; }
@@ -84,10 +81,12 @@ public abstract class Interaction implements Comparable<Interaction> {
         public void run(Game game) {
             var board = game.getBoard();
             var player = board.getPlayer();
-            var oldPlayerLoc = player.getLoc();
-            getChest().getLoc().setOccupants(oldPlayerLoc.getOccupants());
-            oldPlayerLoc.setOccupants(List.of(new Floor(game))); // this is *really* ugly
-            game.chestEncounter(getChest());
+            var chest = getChest();
+            player.moveTo(chest.getLoc());
+            chest.getLoc().mutateOcuppants(occupants -> {
+                occupants.remove(chest);
+            });
+            game.chestEncounter(chest);
         }
 
         public Chest getChest() {

@@ -7,6 +7,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 // https://stackoverflow.com/a/46360964
@@ -14,11 +15,11 @@ public class GridLoc extends JLayeredPane {
     protected int col;
     protected int row;
     protected int playerDistance = 0;
-    protected List<GameObj> occupants = new ArrayList<>();
+    protected ArrayList<GameObj> occupants = new ArrayList<>();
     protected boolean targeted = false;
     protected ImageIcon targetedOverlay = new ImageIcon(Objects.requireNonNull(getClass().getResource("target.png")));
 
-    public GridLoc(List<GameObj> occupants, int col, int row) {
+    public GridLoc(ArrayList<GameObj> occupants, int col, int row) {
         super();
         this.setOccupants(occupants); this.col = col; this.row = row;
         var dims = new Dimension(80, 80);
@@ -37,12 +38,11 @@ public class GridLoc extends JLayeredPane {
         return Math.abs(loc.getCol() - this.col) + Math.abs(loc.getRow() - this.row);
     }
 
-    public List<GameObj> getOccupants() {
-        return occupants;
-    }
-
-    public void setOccupants(List<GameObj> occupants) {
+    public void setOccupants(ArrayList<GameObj> occupants) {
         this.occupants = occupants;
+        rebuild();
+    }
+    private void rebuild() {
         this.occupants.forEach(o -> o.setLoc(this));
         removeAll();
         for (int i = 0; i < occupants.size(); i++) {
@@ -65,6 +65,11 @@ public class GridLoc extends JLayeredPane {
         }
         revalidate();
         repaint();
+    }
+
+    public void mutateOcuppants(Consumer<ArrayList<GameObj>> mutator) {
+        mutator.accept(this.occupants);
+        rebuild();
     }
 
     public boolean isExclusivelyOccupied() {

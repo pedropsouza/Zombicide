@@ -1,0 +1,12 @@
+10 10
+H . X . A . X . . H
+X C . X C X . R X X
+C X . . . . . X . C
+. . X . Z . X . . .
+. . . X . X . . . .
+G . . . T . H . . G
+. . . X . X . . . .
+. Z X . . . X . . .
+. X Z . . . . X . .
+X . . X C X . . X X
+P . X . A . X . R H
