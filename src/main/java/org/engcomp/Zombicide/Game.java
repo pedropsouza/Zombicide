@@ -67,13 +67,6 @@ public class Game extends JFrame {
     public void calcDistances(GridLoc startLoc) {
         assert startLoc != null;
         board.stream().forEach(loc -> loc.val.setPlayerDistance(Integer.MAX_VALUE));
-        final List<Dimension> neighOffs = List.of(
-                new Dimension(1,0),
-                new Dimension(-1,0),
-                new Dimension(0,1),
-                new Dimension(0,-1)
-        );
-
         var setSizeHeuristic = board.getCols()*board.getRows();
         Set<GridLoc> visited = new HashSet<>(setSizeHeuristic);
         Queue<Pair<Integer, GridLoc>> queue = new ArrayDeque<>(setSizeHeuristic/10);
@@ -88,14 +81,9 @@ public class Game extends JFrame {
             if (loc != startLoc && loc.occupants.stream().anyMatch(GameObj::hasCollision)) continue;
             loc.setPlayerDistance(dist);
 
-            for (var neighOff : neighOffs) {
-                var neighLoc = this.board.get(
-                        loc.getCol() + neighOff.width,
-                        loc.getRow() + neighOff.height
-                );
-                if (neighLoc == null) continue;
-                if (!visited.contains(neighLoc)) {
-                    queue.add(new Pair<>(dist+1, neighLoc));
+            for (var neigh : board.getOrthogonals(loc)) {
+                if (!visited.contains(neigh)) {
+                    queue.add(new Pair<>(dist+1, neigh));
                 }
             }
         }

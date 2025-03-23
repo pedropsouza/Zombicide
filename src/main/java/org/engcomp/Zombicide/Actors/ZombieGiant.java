@@ -10,7 +10,7 @@ public class ZombieGiant extends Zombie {
     }
 
     @Override
-    public Interaction run() {
-        return super.run();
+    protected boolean interactionFilter(Interaction i) {
+        return i instanceof Interaction.EnterCombat;
     }
 }

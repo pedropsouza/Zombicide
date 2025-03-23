@@ -8,9 +8,4 @@ public class ZombieCrawler extends Zombie {
         super(owner);
         this.textRepr = "Crawling Zombie";
     }
-
-    @Override
-    public Interaction run() {
-        return super.run();
-    }
 }

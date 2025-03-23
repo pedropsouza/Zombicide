@@ -8,9 +8,4 @@ public class ZombieRegular extends Zombie {
         super(owner);
         this.textRepr = "Zombie";
     }
-
-    @Override
-    public Interaction run() {
-        return super.run();
-    }
 }

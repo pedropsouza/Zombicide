@@ -7,10 +7,6 @@ public class ZombieRunner extends Zombie {
     public ZombieRunner(Game owner) {
         super(owner);
         this.textRepr = "Runner Zombie";
-    }
-
-    @Override
-    public Interaction run() {
-        return super.run();
+        this.speed = 2;
     }
 }

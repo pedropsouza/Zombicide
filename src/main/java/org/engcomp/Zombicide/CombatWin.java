@@ -31,13 +31,13 @@ public class CombatWin extends JFrame {
     };
     protected CombatStage stage = CombatStage.Starting;
 
-    private MenuEntry[] combatEntries = {
+    private final MenuEntry[] combatEntries = {
             new MenuEntry("Melee", this::melee),
             new MenuEntry("Shoot", this::shoot),
             new MenuEntry("Flee", this::flee),
     };
 
-    private MenuEntry[] startEntries = {
+    private final MenuEntry[] startEntries = {
             new MenuEntry("Melee", this::melee),
             new MenuEntry("Shoot", this::shoot),
             new MenuEntry("Reconsider", this::reconsider),

@@ -9,6 +9,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public abstract class Zombie extends ActorObj {
     private boolean alerted = true;
@@ -23,54 +25,51 @@ public abstract class Zombie extends ActorObj {
 
     @Override
     public Interaction run() {
-        if (alerted) { return runTowardsPlayer(); }
+        if (isInCombat()) { return null; }
+        var inters = possibleInteractions();
+        if (alerted) {
+            if (inters.peek() instanceof Interaction.EnterCombat) {
+                return inters.remove();
+            }
+            return runTowardsPlayer(inters);
+        } else {
+            // random move?
+        }
         return null;
     }
 
-    private Interaction runTowardsPlayer() {
-        final java.util.List<Dimension> neighOffs = List.of(
-                new Dimension(1,0),
-                new Dimension(-1,0),
-                new Dimension(0,1),
-                new Dimension(0,-1)
-        );
-        List<GridLoc> neighs = new ArrayList<>(4);
-        for (var neighOff : neighOffs) {
-            var loc = getOwner()
-                    .getBoard()
-                    .get(getLoc().getCol() + neighOff.width,
-                            getLoc().getRow() + neighOff.height);
-            if (loc != null) {
-                neighs.add(loc);
-            }
-        }
-        PriorityQueue<Interaction> possInter = new PriorityQueue<>((l,r) -> {
+    private PriorityQueue<Interaction> possibleInteractions() {
+        Set<GridLoc> neighs = getOwner().getBoard().getOrthogonals(getLoc());
+        PriorityQueue<Interaction> inters = new PriorityQueue<>((l,r) -> {
             return -l.compareTo(r); // reverse ordering, from highest to lowest
         });
-        Interaction.MoveToLoc desiredMove = null;
-        for (var loc : neighs) {
-            possInter.addAll(loc.possibleInteractions(this));
+        for (var neigh : neighs) {
+            inters.addAll(
+                    neigh.possibleInteractions(this)
+                            .stream()
+                            .filter(this::interactionFilter)
+                            .toList()
+            );
         }
-        if (possInter.isEmpty()) return null;
-        System.out.println("possibilities: " + possInter);
-        var maxPrio = possInter.peek().getPriority();
-        possInter.removeIf(i -> i.getPriority() != maxPrio);
-        System.out.println("after culling: " + possInter);
-        for (var i : possInter) {
-            switch (i) {
-                case Interaction.MoveToLoc move: {
-                    var newDist = move.getTargetLoc().getPlayerDistance();
-                    var oldDist = (desiredMove != null) ? desiredMove.getTargetLoc().getPlayerDistance() : Integer.MAX_VALUE;
-                    if (newDist < oldDist) {
-                        desiredMove = move;
-                    }
-                    break;
-                }
-                case Interaction.EnterCombat combat:
-                    return combat;
-                default: break;
+        System.out.println("possible interactions for " + this + ": " + inters);
+        return inters;
+    }
+
+    /// Used to restrict movement for the Giant
+    protected boolean interactionFilter(Interaction i) {
+        return true;
+    }
+
+    private Interaction runTowardsPlayer(PriorityQueue<Interaction> inters) {
+        Interaction.MoveToLoc desiredMove = null;
+        for (var move : inters.stream().flatMap(i ->
+            (i instanceof Interaction.MoveToLoc)? Stream.of((Interaction.MoveToLoc)i) : Stream.empty()
+        ).toList()) {
+            var newDist = move.getTargetLoc().getPlayerDistance();
+            var oldDist = (desiredMove != null) ? desiredMove.getTargetLoc().getPlayerDistance() : Integer.MAX_VALUE;
+            if (newDist < oldDist) {
+                desiredMove = move;
             }
-             //neighs.get(getOwner().getRand().nextInt(neighs.size())));
         }
         System.out.println(this + " @ loc " + getLoc() + " wants to " + desiredMove);
         return desiredMove;

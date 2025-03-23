@@ -4,6 +4,8 @@ import org.engcomp.Zombicide.Game;
 import org.engcomp.Zombicide.GridLoc;
 
 public abstract class ActorObj extends GameObj {
+    private static int serialNumCounter = 0;
+    private final int serialNum;
     protected int health = 5;
     ///  how many cells can this actor move per tick
     protected int speed = 1;
@@ -12,6 +14,7 @@ public abstract class ActorObj extends GameObj {
 
     public ActorObj(Game owner) {
         super(owner);
+        this.serialNum = serialNumCounter++;
         this.hasCollision = true;
         owner.getActors().add(this);
     }
@@ -54,5 +57,14 @@ public abstract class ActorObj extends GameObj {
 
     public void setSpeed(int speed) {
         this.speed = speed;
+    }
+
+    protected int getSerialNum() {
+        return serialNum;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + " #" + getSerialNum();
     }
 }
