@@ -5,18 +5,20 @@ import org.engcomp.Zombicide.Actors.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
 import org.engcomp.Zombicide.utils.Menu;
-import org.engcomp.Zombicide.utils.Menu.MenuEntry;
+import org.engcomp.Zombicide.utils.Pair;
 
 public class CombatWin extends Box {
     //protected Map<String, JButton> btns = new HashMap<>();
     protected Game game;
-    protected JLabel diceRollInfo;
+    protected JLabel attackRollInfo;
+    protected JLabel defenseRollInfo;
     protected JList<String> combatLogList;
     protected DefaultListModel<String> combatLog;
     protected Menu actionBtns;
@@ -31,31 +33,39 @@ public class CombatWin extends Box {
         Reconsidered,
     };
     protected CombatStage stage = CombatStage.Starting;
+    protected boolean done = false;
 
-    private final MenuEntry[] combatEntries = {
-            new MenuEntry("Melee", this::melee),
-            new MenuEntry("Shoot", this::shoot),
-            new MenuEntry("Flee", this::flee),
-    };
+    protected Color successClr = Color.decode("#3c9530");
+    protected Color neutralClr = Color.decode("#000000");
+    protected Color failureClr = Color.decode("#953c30");
 
-    private final MenuEntry[] startEntries = {
-            new MenuEntry("Melee", this::melee),
-            new MenuEntry("Shoot", this::shoot),
-            new MenuEntry("Reconsider", this::reconsider),
-    };
+    private final ArrayList<Pair<String, ActionListener>> combatEntries = new ArrayList<>(List.of(
+            new Pair<>("Melee", this::melee),
+            new Pair<>("Shoot", this::shoot),
+            new Pair<>("Flee", this::flee)
+    ));
+
+    private final ArrayList<Pair<String, ActionListener>> startEntries = new ArrayList<>(List.of(
+            new Pair<>("Melee", this::melee),
+            new Pair<>("Shoot", this::shoot),
+            new Pair<>("Reconsider", this::reconsider)
+    ));
 
     public CombatWin(Game game, Player player, Zombie foe) {
         super(BoxLayout.PAGE_AXIS);
         this.game = game;
         //setSize(300, 500);
 
-        diceRollInfo = new JLabel("-- ROLL --");
-        add(diceRollInfo);
+        attackRollInfo = new JLabel("");
+        add(attackRollInfo);
+        defenseRollInfo = new JLabel("");
+        add(defenseRollInfo);
         combatLog = new DefaultListModel<>();
         combatLogList = new JList<>(combatLog);
         add(combatLogList);
-        actionBtns = new Menu(Arrays.stream(startEntries), BoxLayout.LINE_AXIS, new JLabel("Actions"));
+        actionBtns = new Menu(startEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
         add(actionBtns);
+        resetDiceInfo();
 
         setVisible(true);
 
@@ -66,6 +76,7 @@ public class CombatWin extends Box {
 
     // Combat actions
     private void shoot(ActionEvent actionEvent) {
+        resetDiceInfo();
         if (player.canUseItem(Item.Revolver)) {
             player.useItem(Item.Revolver);
             combatLog.addElement("Bang");
@@ -82,15 +93,23 @@ public class CombatWin extends Box {
     }
 
     public void melee(ActionEvent actionEvent) {
+        resetDiceInfo();
         boolean withBat = player.canUseItem(Item.BaseballBat);
         combatLog.addElement("Pow" + (withBat? " with bat" : " barehanded"));
         var diceRoll = game.getRand().nextInt(6+1);
         var threshold = player.canUseItem(Item.BaseballBat)? 3 : 5;
         var dmg = withBat? Damage.Blunt : Damage.BareHand;
+        var diceMsg = "Attack rolled a " + diceRoll + "; " + diceRoll + " > " + threshold + "?";
         if (diceRoll > threshold) {
-            combatLog.addElement("Critical hit!");
+            diceMsg += " Yes! Critical hit!";
+            attackRollInfo.setForeground(successClr);
             dmg = Damage.Critical;
+        } else {
+            attackRollInfo.setForeground(neutralClr);
+            diceMsg += " No.";
         }
+        combatLog.addElement(diceMsg);
+        attackRollInfo.setText(diceMsg);
 
         attack(dmg);
         afterAction();
@@ -124,6 +143,10 @@ public class CombatWin extends Box {
     }
 
     protected void defend(Damage dmg) {
+        switch (getStage()) {
+            case CombatStage.Started, CombatStage.Starting: break;
+            default: return;
+        }
         var taken = player.dealDamage(dmg);
         combatLog.addElement("You lost " + taken + " health defending from " + foe + "!");
         if (player.isDead()) {
@@ -134,33 +157,42 @@ public class CombatWin extends Box {
     }
 
     protected void foeTurn() {
+        if (getStage() == CombatStage.FoeDead) return;
         int diceRoll = game.getRand().nextInt(3+1);
         int threshold = game.getBoard().getPlayer().getPerception();
+        var diceMsg = "The zombie rolled a " + diceRoll + "; " + diceRoll + " > " + threshold + "?";
         if (diceRoll > threshold) {
+            defenseRollInfo.setForeground(failureClr);
+            diceMsg += " Yes!";
+            combatLog.addElement(diceMsg);
             defend(foe.getAttackDamage());
+        } else {
+            defenseRollInfo.setForeground(successClr);
+            diceMsg += " No!";
+            combatLog.addElement(diceMsg);
         }
+        defenseRollInfo.setText(diceMsg);
     }
 
     private void afterAction() {
+        foeTurn();
         System.out.println("player hp = " + player.getHealth() + " , " + "zombie hp = " + foe.getHealth());
         setStage(switch (getStage()) {
             case CombatStage.Starting -> {
                 remove(actionBtns);
-                actionBtns = new Menu(Arrays.stream(combatEntries), BoxLayout.LINE_AXIS, new JLabel("Actions"));
+                actionBtns = new Menu(combatEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
                 add(actionBtns, BorderLayout.SOUTH);
                 revalidate();
-                foeTurn();
                 yield CombatStage.Started;
             }
             case CombatStage.Started -> {
-                foeTurn();
                 yield getStage();
             }
             case CombatStage.Reconsidered, CombatStage.Fled, CombatStage.FoeDead, CombatStage.PlayerDead -> {
                 game.combatEnded(getStage());
+                done = true;
                 yield getStage();
             }
-            default -> getStage();
         });
         game.finishTurn();
     }
@@ -178,4 +210,12 @@ public class CombatWin extends Box {
             game.removeActor(body);
         }
     }
+
+    public void resetDiceInfo() {
+        attackRollInfo.setForeground(neutralClr);
+        defenseRollInfo.setForeground(neutralClr);
+        attackRollInfo.setText("—");
+        defenseRollInfo.setText("—");
+    }
+
 }

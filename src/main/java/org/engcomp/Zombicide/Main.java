@@ -5,10 +5,13 @@ import io.github.classgraph.ScanResult;
 import org.engcomp.Zombicide.utils.Menu;
 
 import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
+import org.engcomp.Zombicide.utils.Pair;
 
 public class Main {
     private static Game game;
@@ -23,27 +26,27 @@ public class Main {
             setSize(300, 250);
             Menu difficultyMenu;
             { // Menu de dificuldade
-                Menu.MenuEntry[] entries = {
-                    new Menu.MenuEntry("Fácil", _ -> {
+                ArrayList<Pair<String, ActionListener>> entries = new ArrayList<>(List.of(
+                    new Pair<>("Fácil", _ -> {
                         percepcao = 3;
                     }),
-                    new Menu.MenuEntry("Normal", _ -> {
+                    new Pair<>("Normal", _ -> {
                         percepcao = 2;
                     }),
-                    new Menu.MenuEntry("Difícil", _ -> {
+                    new Pair<>("Difícil", _ -> {
                         percepcao = 1;
-                    }),
-                };
+                    })
+                ));
                 difficultyMenu = new Menu(
-                        Arrays.stream(entries),
+                        entries.stream(),
                         BoxLayout.PAGE_AXIS,
                         new JLabel("Dificuldade")
                 );
             }
             Menu menu;
             { // Menu de inicio
-                ArrayList<Menu.MenuEntry> entries = new ArrayList<>();
-                entries.add(new Menu.MenuEntry("Start", _ -> {
+                ArrayList<Pair<String, ActionListener>> entries = new ArrayList<>();
+                entries.add(new Pair<>("Start", _ -> {
                     game = new Game(getClass().getResource("maps/mapa01.txt"), percepcao);
                     setVisible(false);
                 }));
@@ -63,19 +66,19 @@ public class Main {
                             var matcher = pattern.matcher(relPath);
                             if (!matcher.find()) { continue; }
                             System.out.println("found map " + relPath);
-                            entries.add(new Menu.MenuEntry(matcher.group(0), _ -> {
+                            entries.add(new Pair<String, ActionListener>(matcher.group(0), _ -> {
                                 game = new Game(getClass().getResource(matcher.group(0)), percepcao);
                                 setVisible(false);
                             }));
                         }
                     }
                 }
-                entries.add(new Menu.MenuEntry("DEBUG", _ -> {
+                entries.add(new Pair<>("DEBUG", _ -> {
                     game = new Game(getClass().getResource("maps/mapa01.txt"), percepcao);
                     game.setDebug(true);
                     setVisible(false);
                 }));
-                entries.add(new Menu.MenuEntry("Exit", _ -> {
+                entries.add(new Pair<>("Exit", _ -> {
                     dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
                 }));
 

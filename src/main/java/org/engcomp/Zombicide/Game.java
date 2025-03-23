@@ -130,11 +130,10 @@ public class Game extends JFrame {
 
     public void combatEnded(CombatWin.CombatStage stage) {
         combatWin = null;
-        sidebar.setCombatView(null);
         switch (stage) {
             case CombatWin.CombatStage.PlayerDead -> gameOver();
             case CombatWin.CombatStage.FoeDead -> {
-                if (actors.size() == 1 && actors.get(0) instanceof Player) {
+                if (actors.size() == 1 && actors.getFirst() instanceof Player) {
                     gameWon();
                 }
             }

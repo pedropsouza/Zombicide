@@ -7,12 +7,9 @@ import java.util.stream.Stream;
 
 public class Menu extends Box {
     protected ArrayList<JButton> btns;
-    public record MenuEntry(String text, ActionListener callback) {
-        public String getText() { return text; }
-        public ActionListener getCallback() { return callback; }
-    };
+    protected Pair<String, ActionListener> entries;
 
-    public Menu(Stream<MenuEntry> entries, int axis, JLabel title) {
+    public Menu(Stream<Pair<String, ActionListener>> entries, int axis, JLabel title) {
         super(axis);
         if (title != null) {
             add(title);
@@ -20,15 +17,15 @@ public class Menu extends Box {
         btns = new ArrayList<>();
 
         entries.forEach(entry -> {
-            var btn = new JButton(entry.text);
-            btn.addActionListener(entry.callback);
+            var btn = new JButton(entry.l);
+            btn.addActionListener(entry.r);
             btns.add(btn);
             add(btn);
         });
 
         setVisible(true);
     }
-    public Menu(Stream<MenuEntry> entries, int axis) {
+    public Menu(Stream<Pair<String, ActionListener>> entries, int axis) {
         this(entries, axis, null);
     }
 }
