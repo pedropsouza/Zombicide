@@ -10,9 +10,11 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import org.engcomp.Zombicide.utils.Menu;
 import org.engcomp.Zombicide.utils.Pair;
+import org.engcomp.Zombicide.utils.ReactiveMenu;
 
 public class CombatWin extends Box {
     //protected Map<String, JButton> btns = new HashMap<>();
@@ -21,7 +23,7 @@ public class CombatWin extends Box {
     protected JLabel defenseRollInfo;
     protected JList<String> combatLogList;
     protected DefaultListModel<String> combatLog;
-    protected Menu actionBtns;
+    protected ReactiveMenu actionBtns;
     protected Player player;
     protected Zombie foe;
     public enum CombatStage {
@@ -39,16 +41,16 @@ public class CombatWin extends Box {
     protected Color neutralClr = Color.decode("#000000");
     protected Color failureClr = Color.decode("#953c30");
 
-    private final ArrayList<Pair<String, ActionListener>> combatEntries = new ArrayList<>(List.of(
-            new Pair<>("Melee", this::melee),
-            new Pair<>("Shoot", this::shoot),
-            new Pair<>("Flee", this::flee)
+    private final ArrayList<Pair<String, Pair<ActionListener, Consumer<JButton>>>> combatEntries = new ArrayList<>(List.of(
+            new Pair<>("Melee", new Pair<>(this::melee, this::actionButtonEnabler)),
+            new Pair<>("Shoot", new Pair<>(this::shoot, this::shootButtonEnabler)),
+            new Pair<>("Flee",  new Pair<>(this::flee, this::actionButtonEnabler))
     ));
 
-    private final ArrayList<Pair<String, ActionListener>> startEntries = new ArrayList<>(List.of(
-            new Pair<>("Melee", this::melee),
-            new Pair<>("Shoot", this::shoot),
-            new Pair<>("Reconsider", this::reconsider)
+    private final ArrayList<Pair<String, Pair<ActionListener, Consumer<JButton>>>> startEntries = new ArrayList<>(List.of(
+            new Pair<>("Melee", new Pair<>(this::melee, this::actionButtonEnabler)),
+            new Pair<>("Shoot", new Pair<>(this::shoot, this::shootButtonEnabler)),
+            new Pair<>("Reconsider", new Pair<>(this::reconsider, this::actionButtonEnabler))
     ));
 
     public CombatWin(Game game, Player player, Zombie foe) {
@@ -63,9 +65,10 @@ public class CombatWin extends Box {
         combatLog = new DefaultListModel<>();
         combatLogList = new JList<>(combatLog);
         add(combatLogList);
-        actionBtns = new Menu(startEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
+        actionBtns = ReactiveMenu.fromReactive(startEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
         add(actionBtns);
         resetDiceInfo();
+        actionBtns.updateAllButtons();
 
         setVisible(true);
 
@@ -90,6 +93,14 @@ public class CombatWin extends Box {
             return;
         }
         afterAction();
+    }
+
+    public void shootButtonEnabler(JButton btn) {
+        btn.setEnabled(!done && game.getBoard().getPlayer().canUseItem(Item.Revolver));
+    }
+
+    public void actionButtonEnabler(JButton btn) {
+        btn.setEnabled(!done);
     }
 
     public void melee(ActionEvent actionEvent) {
@@ -180,7 +191,7 @@ public class CombatWin extends Box {
         setStage(switch (getStage()) {
             case CombatStage.Starting -> {
                 remove(actionBtns);
-                actionBtns = new Menu(combatEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
+                actionBtns = ReactiveMenu.fromReactive(combatEntries.stream(), BoxLayout.LINE_AXIS, new JLabel("Actions"));
                 add(actionBtns, BorderLayout.SOUTH);
                 revalidate();
                 yield CombatStage.Started;
@@ -194,6 +205,7 @@ public class CombatWin extends Box {
                 yield getStage();
             }
         });
+        actionBtns.updateAllButtons();
         game.finishTurn();
     }
 

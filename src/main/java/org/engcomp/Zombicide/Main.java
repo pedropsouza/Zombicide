@@ -7,14 +7,18 @@ import org.engcomp.Zombicide.utils.Menu;
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import org.engcomp.Zombicide.utils.Pair;
 
 public class Main {
     private static Game game;
+    private static URL mapUrl;
     static int percepcao = 2;
 
     private static class MainMenu extends JFrame {
@@ -37,7 +41,7 @@ public class Main {
                         percepcao = 1;
                     })
                 ));
-                difficultyMenu = new Menu(
+                difficultyMenu = Menu.from(
                         entries.stream(),
                         BoxLayout.PAGE_AXIS,
                         new JLabel("Dificuldade")
@@ -47,7 +51,9 @@ public class Main {
             { // Menu de inicio
                 ArrayList<Pair<String, ActionListener>> entries = new ArrayList<>();
                 entries.add(new Pair<>("Start", _ -> {
-                    game = new Game(getClass().getResource("maps/mapa01.txt"), percepcao);
+                    mapUrl = getClass().getResource("maps/mapa01.txt");
+                    game = new Game(mapUrl, percepcao);
+                    game.setGameEndCallback(this::gameEnd);
                     setVisible(false);
                 }));
                 { // find all maps
@@ -67,22 +73,26 @@ public class Main {
                             if (!matcher.find()) { continue; }
                             System.out.println("found map " + relPath);
                             entries.add(new Pair<String, ActionListener>(matcher.group(0), _ -> {
-                                game = new Game(getClass().getResource(matcher.group(0)), percepcao);
+                                mapUrl = getClass().getResource(matcher.group(0));
+                                game = new Game(mapUrl, percepcao);
+                                game.setGameEndCallback(this::gameEnd);
                                 setVisible(false);
                             }));
                         }
                     }
                 }
                 entries.add(new Pair<>("DEBUG", _ -> {
-                    game = new Game(getClass().getResource("maps/mapa01.txt"), percepcao);
+                    mapUrl = getClass().getResource("maps/mapa01.txt");
+                    game = new Game(mapUrl, percepcao);
                     game.setDebug(true);
+                    game.setGameEndCallback(this::gameEnd);
                     setVisible(false);
                 }));
                 entries.add(new Pair<>("Exit", _ -> {
                     dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
                 }));
 
-                menu = new Menu(entries.stream(), BoxLayout.PAGE_AXIS);
+                menu = Menu.from(entries.stream(), BoxLayout.PAGE_AXIS);
             }
             box.add(Box.createHorizontalGlue());
             box.add(menu);
@@ -91,6 +101,31 @@ public class Main {
             box.add(Box.createHorizontalGlue());
             box.setVisible(true);
             setVisible(true);
+        }
+
+        private final static class GameEndMenu extends JFrame {
+            public GameEndMenu(MainMenu parent) {
+                super("What now?");
+                Menu menu = Menu.from(Stream.of(
+                                new Pair<>("New game", _ -> {
+                                    setVisible(false);
+                                    parent.setVisible(true);
+                                }),
+                                new Pair<>("Retry", _ -> {
+                                    setVisible(false);
+                                    var newGame = new Game(mapUrl, percepcao);
+                                    newGame.setDebug(game.isDebug());
+                                    newGame.setGameEndCallback(parent::gameEnd);
+                                })
+                        ),
+                        BoxLayout.PAGE_AXIS
+                );
+                add(menu);
+                setVisible(true);
+            }
+        }
+        public void gameEnd() {
+            new GameEndMenu(this);
         }
     }
 

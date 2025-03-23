@@ -30,16 +30,26 @@ public class Game extends JFrame {
     protected boolean debug = false;
     protected GameStage stage;
     protected Timer animationTimer;
+    protected Runnable gameEndCallback;
+
+    protected URL mapUrl;
+    protected int playerPerception;
 
     public Game(URL map, int playerPerception) {
         super("Zombicide");
+        this.playerPerception = playerPerception;
+        this.mapUrl = map;
+        init();
+
+    }
+    private void init() {
         loadBtn = new JButton("load");
         Dimension windowDims = new Dimension(800, 800);
         setSize(windowDims);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         try {
-            board = GameBoard.load(this, map);
+            board = GameBoard.load(this, mapUrl);
             board.getPlayer().setPerception(playerPerception);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error loading map: " + e.getLocalizedMessage());
@@ -143,12 +153,14 @@ public class Game extends JFrame {
     public void gameOver() {
         System.out.println("You died. Game over!");
         JOptionPane.showMessageDialog(this, "You died. Game Over!");
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+        gameEndCallback.run();
+        setVisible(false);
     }
     public void gameWon() {
         System.out.println("You win! There are no zombies left.");
         JOptionPane.showMessageDialog(this, "You win! There are no zombies left.");
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+        if (gameEndCallback != null) gameEndCallback.run();
+        setVisible(false);
     }
 
     public void chestEncounter(Chest c) {
@@ -182,4 +194,13 @@ public class Game extends JFrame {
             occupants.remove(actor);
         });
     }
+
+    public void setGameEndCallback(Runnable gameEndCallback) {
+        this.gameEndCallback = gameEndCallback;
+    }
+
+    public void retry() {
+        init();
+    }
+
 }
