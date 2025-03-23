@@ -22,7 +22,7 @@ public class Game extends JFrame {
     protected JScrollPane boardScrollPane;
     protected Sidebar sidebar;
     protected JSplitPane splitPane;
-    protected GridLayout btnGridLayout;
+    protected GridBagLayout btnGridLayout;
     protected GameBoard board = null;
     protected CombatWin combatWin = null;
     protected Random rand = new Random();
@@ -46,10 +46,16 @@ public class Game extends JFrame {
             throw new RuntimeException("Error loading map");
         }
         { // Setup board panel
-            var boardPanel = new JPanel();
+
+            btnGridLayout = new GridBagLayout();
+            var boardPanel = new JPanel(btnGridLayout);
+            var c = new GridBagConstraints();
             boardScrollPane = new JScrollPane(boardPanel);
-            board.stream().forEach(e -> boardPanel.add(e.val));
-            btnGridLayout = new GridLayout(board.getRows(), board.getCols());
+            for (var entry : getBoard().stream().toList()) {
+                c.gridx = entry.idx.col;
+                c.gridy = entry.idx.row;
+                boardPanel.add(entry.val, c);
+            }
             boardPanel.setLayout(btnGridLayout);
             boardPanel.setPreferredSize(new Dimension(80*getBoard().getCols(), 80*getBoard().getRows()));
             boardPanel.setVisible(true);
