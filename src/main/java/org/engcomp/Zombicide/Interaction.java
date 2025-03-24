@@ -52,24 +52,26 @@ public abstract class Interaction implements Comparable<Interaction> {
     }
 
     public static final class EnterCombat extends Interaction {
-        private final ActorObj opponent;
-        public EnterCombat(ActorObj opponent) {
+        private final ActorObj attacker;
+        private final ActorObj victim;
+        public EnterCombat(ActorObj attacker, ActorObj victim) {
             super(2);
-            this.opponent = opponent;
+            this.attacker = attacker;
+            this.victim = victim;
         }
 
         @Override
         public void run(Game game) {
-            game.combat((Zombie)getOpponent());
-        }
-
-        public ActorObj getOpponent() {
-            return this.opponent;
+            if (attacker instanceof Zombie) {
+                game.combat((Zombie) attacker, false);
+            } else {
+                game.combat((Zombie) victim, true);
+            }
         }
 
         @Override
         public String toString() {
-            return "Enter combat with actor " + getOpponent();
+            return "Enter combat between attacker " + attacker + " and victim " + victim;
         }
     }
 

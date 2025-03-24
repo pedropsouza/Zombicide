@@ -129,15 +129,8 @@ public class GridLoc extends JLayeredPane {
         }
         if (isPlayer) { chest.ifPresent(chestObj -> acc.add(new Interaction.OpenChest(chestObj))); }
         actor.ifPresent(opponent -> {
-            if (isPlayer && opponent instanceof Zombie) {
-                acc.add(new Interaction.EnterCombat(opponent));
-            }
-            if (forActor instanceof Zombie && opponent instanceof Player) {
-                if (forActor.getLoc().getPlayerDistance() > 1) {
-                    return;
-                }
-                acc.add(new Interaction.EnterCombat(forActor));
-            }
+            if (!isPlayer && opponent instanceof Zombie) return;
+            acc.add(new Interaction.EnterCombat(forActor, opponent));
         });
         return acc;
     }

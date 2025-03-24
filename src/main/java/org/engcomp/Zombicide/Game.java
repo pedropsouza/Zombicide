@@ -78,6 +78,7 @@ public class Game extends JFrame {
         calcDistancesAndFog();
         updateBtns();
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sidebar, boardScrollPane);
+        splitPane.setResizeWeight(0.25);
         add(splitPane);
 
         combatLog = new DefaultListModel<>();
@@ -173,9 +174,13 @@ public class Game extends JFrame {
         });
     }
 
-    public void combat(Zombie zed) {
+    public void combat(Zombie zed, boolean playerAttacked) {
         if (combatPanel != null) return;
         combatPanel = new CombatPanel(this, board.getPlayer(), zed);
+        if (!playerAttacked) {
+            // it's as if the player skipped a turn
+            combatPanel.afterAction();
+        }
         sidebar.setCombatView(combatPanel);
         updateBtns();
     }
