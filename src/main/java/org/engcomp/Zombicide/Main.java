@@ -106,6 +106,7 @@ public class Main {
         private final static class GameEndMenu extends JFrame {
             public GameEndMenu(MainMenu parent) {
                 super("What now?");
+                setDefaultCloseOperation(EXIT_ON_CLOSE);
                 Menu menu = Menu.from(Stream.of(
                                 new Pair<>("New game", _ -> {
                                     setVisible(false);

@@ -1,6 +1,7 @@
 package org.engcomp.Zombicide;
 import org.engcomp.Zombicide.Actors.*;
 import org.engcomp.Zombicide.utils.Matrix;
+import org.engcomp.Zombicide.utils.Pair;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class GameBoard extends Matrix<GridLoc> {
@@ -76,6 +78,7 @@ public class GameBoard extends Matrix<GridLoc> {
                     super.mouseEntered(e);
                     loc.setTargeted(loc.isEnabled());
                     loc.repaint();
+                    game.revalidate();
                 }
 
                 @Override
@@ -126,6 +129,80 @@ public class GameBoard extends Matrix<GridLoc> {
                 acc.add(retrieved);
             }
         });
+        return acc;
+    }
+
+    public Stream<GridLoc> getStraightPath(GridLoc a, GridLoc b) {
+        return getStraightPath(a.col, a.row, b.col, b.row);
+    }
+    public Stream<GridLoc> getStraightPath(int ax, int ay, int bx, int by) {
+        int dx = (bx - ax);
+        int dy = (by - ay);
+
+        // Keep dy/dx <= 1
+        boolean swapXY = false;
+
+        boolean reflectX = false;
+        boolean reflectY = false;
+
+        if (dx == 0) {
+            var step = (dy >= 0)? 1 : -1;
+            return Stream.iterate(ay, y -> y != by, y -> y + step)
+                    .flatMap(y -> {
+                        var loc = get(ax, y);
+                        return (loc != null)? Stream.of(loc) : Stream.empty();
+                    });
+        } else if (dx < 0) {
+            reflectX = true;
+        }
+        if (dy == 0) {
+            var step = (dx >= 0)? 1 : -1;
+            return Stream.iterate(ax, x -> x != bx, x -> x + step)
+                    .flatMap(x -> {
+                        var loc = get(x, ay);
+                        return (loc != null)? Stream.of(loc) : Stream.empty();
+                    });
+        } else if (dy < 0) {
+            reflectY = true;
+        }
+        if (reflectX) { dx = -dx; }
+        if (reflectY) { dy = -dy; }
+        if (dy/dx > 0) {
+            var temp = dx;
+            dx = dy;
+            dy = temp;
+            swapXY = true;
+        }
+        var offs = bresenham(dx, dy);
+        final boolean reflectXf = reflectX;
+        final boolean reflectYf = reflectY;
+        final boolean swapXYf = swapXY;
+        return offs.stream().flatMap(off -> {
+            var x = ax + (reflectXf? -1 : 1)*off.l;
+            var y = ay + (reflectYf? -1 : 1)*off.r;
+            if (swapXYf) {
+                var temp = x;
+                x = y;
+                y = temp;
+            }
+            var loc = get(x,y);
+            return (loc != null)? Stream.of(loc) : Stream.empty();
+        });
+    }
+
+    /// Assumes ax < bx && ay < by && 0 <= dy/dx <= 1
+    private List<Pair<Integer, Integer>> bresenham(int dx, int dy) {
+        var acc = new ArrayList<Pair<Integer, Integer>>();
+        int error = 0;
+
+        for (int x = 0, y = 0; x <= dx; x++) {
+            acc.add(new Pair<>(x,y));
+            error += dy;
+            if(2*error >= dx) {
+                y++;
+                error -= dx;
+            }
+        }
         return acc;
     }
 

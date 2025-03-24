@@ -56,7 +56,7 @@ public abstract class Zombie extends ActorObj {
             GridLoc loc = pair.r;
             // stop one step before our limit, since we add neighbouring
             // locations which will probably be +1 dist
-            var occupiedByNonPlayer = loc != ourLoc && loc.isExclusivelyOccupied() && !loc.hasPlayer();
+            var occupiedByNonPlayer = loc != ourLoc && loc.isExclusivelyOccupied() && !loc.isPlayerHere();
             if (dist > speed || occupiedByNonPlayer) continue;
             neighs.add(loc);
             for (var neigh : board.getOrthogonals(loc)) {

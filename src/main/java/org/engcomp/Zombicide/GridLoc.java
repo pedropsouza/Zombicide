@@ -17,6 +17,10 @@ public class GridLoc extends JLayeredPane {
     protected int playerDistance = 0;
     protected ArrayList<GameObj> occupants = new ArrayList<>();
     protected boolean targeted = false;
+    protected boolean solid;
+    protected boolean exclusivelyOccupied;
+    protected boolean playerHere;
+    protected boolean inFogOfWar = false;
     protected ImageIcon targetedOverlay = new ImageIcon(Objects.requireNonNull(getClass().getResource("target.png")));
 
     public GridLoc(ArrayList<GameObj> occupants, int col, int row) {
@@ -43,11 +47,10 @@ public class GridLoc extends JLayeredPane {
         rebuild();
     }
 
-    public boolean hasPlayer() {
-        return this.occupants.stream().anyMatch(occ -> occ instanceof Player);
-    }
-
     private void rebuild() {
+        this.playerHere = computeIsPlayerHere();
+        this.exclusivelyOccupied = computeIsExclusivelyOccupied();
+        this.solid = computeIsSolid();
         this.occupants.forEach(o -> o.setLoc(this));
         removeAll();
         for (int i = 0; i < occupants.size(); i++) {
@@ -77,15 +80,31 @@ public class GridLoc extends JLayeredPane {
         rebuild();
     }
 
-    public boolean isExclusivelyOccupied() {
+    private boolean computeIsExclusivelyOccupied() {
         var occupied = !occupants.isEmpty();
         var anyHasCollision = occupied && occupants.stream().anyMatch(GameObj::hasCollision);
         return occupied && anyHasCollision;
     }
 
-    public boolean isSolid() {
+    public boolean isExclusivelyOccupied() {
+        return exclusivelyOccupied;
+    }
+
+    private boolean computeIsSolid() {
         var occupied = !occupants.isEmpty();
         return occupied && occupants.stream().anyMatch(occ -> occ instanceof Wall);
+    }
+
+    public boolean isSolid() {
+        return solid;
+    }
+
+    private boolean computeIsPlayerHere() {
+        return this.occupants.stream().anyMatch(occ -> occ instanceof Player);
+    }
+
+    public boolean isPlayerHere() {
+        return playerHere;
     }
 
     public List<Interaction> possibleInteractions(ActorObj forActor) {
@@ -126,7 +145,11 @@ public class GridLoc extends JLayeredPane {
 
     @Override
     protected void paintComponent(Graphics g) {
-        //super.paintComponent(g);
+        if (isInFogOfWar()) {
+            g.setColor(new Color(0x1c, 0x1c, 0x1c));
+            g.fillRect(0,0, 80,80);
+            return;
+        }
         for (GameObj occupant : occupants) {
             var imgRepr = occupant.getImgRepr();
             String[] stringsToDraw = new String[2];
@@ -171,5 +194,13 @@ public class GridLoc extends JLayeredPane {
 
     public boolean isTargeted() {
         return targeted;
+    }
+
+    public boolean isInFogOfWar() {
+        return inFogOfWar;
+    }
+
+    public void setInFogOfWar(boolean inFogOfWar) {
+        this.inFogOfWar = inFogOfWar;
     }
 }

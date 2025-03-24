@@ -5,10 +5,6 @@ import org.engcomp.Zombicide.utils.Pair;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -79,7 +75,7 @@ public class Game extends JFrame {
 
         this.sidebar = new Sidebar(this);
 
-        calcDistances();
+        calcDistancesAndFog();
         updateBtns();
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sidebar, boardScrollPane);
         add(splitPane);
@@ -95,7 +91,7 @@ public class Game extends JFrame {
         updateBtns();
         switch (getStage()) {
             case GameStage.PLAYER_TURN: {
-                calcDistances();
+                calcDistancesAndFog();
                 break;
             }
             case GameStage.PLAYER_ANIMATION: {
@@ -132,29 +128,36 @@ public class Game extends JFrame {
         turn++;
     }
 
-    public void calcDistances() {
-        calcDistances(board.getPlayer().getLoc());
+    public void calcDistancesAndFog() {
+        calcDistancesAndFog(board.getPlayer().getLoc());
     }
-    public void calcDistances(GridLoc startLoc) {
+    public void calcDistancesAndFog(GridLoc startLoc) {
         assert startLoc != null;
         board.stream().forEach(loc -> loc.val.setPlayerDistance(Integer.MAX_VALUE));
         var setSizeHeuristic = board.getCols()*board.getRows();
         Set<GridLoc> visited = new HashSet<>(setSizeHeuristic);
-        Queue<Pair<Integer, GridLoc>> queue = new ArrayDeque<>(setSizeHeuristic/10);
-        queue.add(new Pair<>(0, startLoc));
+        Queue<Pair<Pair<Integer,Boolean>, GridLoc>> queue = new ArrayDeque<>(setSizeHeuristic/10);
+        queue.add(new Pair<>(new Pair<>(0, false), startLoc));
 
         while(!queue.isEmpty()) {
             var pair = queue.remove();
-            int dist = pair.l;
+            int dist = pair.l.l;
+            boolean fog = pair.l.r;
             GridLoc loc = pair.r;
             visited.add(loc);
 
+            loc.setInFogOfWar(fog);
             if (loc != startLoc && loc.isSolid()) continue;
             loc.setPlayerDistance(dist);
 
             for (var neigh : board.getOrthogonals(loc)) {
                 if (!visited.contains(neigh)) {
-                    queue.add(new Pair<>(dist+1, neigh));
+                    var nextFog = fog;
+                    if(!fog) {
+                        nextFog = board.getStraightPath(startLoc, neigh)
+                                .anyMatch(GridLoc::isSolid);
+                    }
+                    queue.add(new Pair<>(new Pair<>(dist+1, nextFog), neigh));
                 }
             }
         }
