@@ -253,7 +253,6 @@ public class Game extends JFrame {
     }
 
     public void setDebug(boolean debug) {
-        this.getBoard().stream().forEach(e -> e.val.setDebug(debug));
         this.debug = debug;
     }
 

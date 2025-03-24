@@ -93,6 +93,7 @@ public class CombatPanel extends Panel {
 
         this.player = player; player.setInCombat(true);
         this.foe = foe; player.setInCombat(true);
+        this.foe.getLoc().revalidate();
         combatLog("— Started combat with " + foe + " —");
     }
 

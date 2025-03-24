@@ -21,11 +21,18 @@ public class Sidebar extends Box {
         var upper = new Box(BoxLayout.PAGE_AXIS);
         upper.setPreferredSize(new Dimension(280, 300));
         var title = new JLabel("Zombicide");
+        title.setAlignmentX(CENTER_ALIGNMENT);
         upper.add(title);
         upper.add(Box.createGlue());
         { // Inventory and health
             var health = new JLabel(); upper.add(health);
+            var perception = new JLabel(); upper.add(perception);
             var bandages = new JButton("Use bandage"); upper.add(bandages);
+            var wait = new JButton("Skip turn"); upper.add(wait);
+            health.setAlignmentX(CENTER_ALIGNMENT);
+            bandages.setAlignmentX(CENTER_ALIGNMENT);
+            wait.setAlignmentX(CENTER_ALIGNMENT);
+
             upper.add(Box.createGlue());
             bandages.addActionListener(_ -> {
                 var p = board.getPlayer();
@@ -38,11 +45,21 @@ public class Sidebar extends Box {
                     game.finishTurn();
                 }
             });
+            wait.addActionListener(_ -> {
+                var p = board.getPlayer();
+                CombatPanel c = game.getCombat();
+                if (c != null) {
+                    c.afterAction();
+                } else {
+                    game.finishTurn();
+                }
+            });
             var items = new JList<String>(inventoryListModel); upper.add(items);
             board.getPlayer().addChangedCallback(pUncased -> {
                 assert pUncased instanceof Player;
                 var p = (Player)pUncased;
                 health.setText("Health: " + p.getHealth());
+                perception.setText("Perception: " + p.getPerception());
                 bandages.setEnabled(p.canUseItem(Item.Bandages));
                 List<String> inventoryList = p.getInventory().entrySet().stream().flatMap(e -> {
                     var item = e.getKey();

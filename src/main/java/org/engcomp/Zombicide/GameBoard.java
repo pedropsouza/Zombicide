@@ -57,7 +57,7 @@ public class GameBoard extends Matrix<GridLoc> {
             default -> { assert false; yield null; }
             };
 
-            var loc = new GridLoc(new ArrayList<>(objs), entry.idx.col, entry.idx.row);
+            var loc = new GridLoc(game, new ArrayList<>(objs), entry.idx.col, entry.idx.row);
             objs.forEach(obj -> obj.setLoc(loc));
             data.add(loc);
         }

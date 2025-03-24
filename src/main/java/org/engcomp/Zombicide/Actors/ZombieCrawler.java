@@ -9,5 +9,6 @@ public class ZombieCrawler extends Zombie {
         this.textRepr = "Crawling Zombie";
         this.health = 1;
         this.negatedDamages.clear();
+        this.concealment = 3;
     }
 }

@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 // https://stackoverflow.com/a/46360964
 public class GridLoc extends JLayeredPane {
-    protected boolean debug = false;
+    protected Game game;
     protected int col;
     protected int row;
     protected int playerDistance = 0;
@@ -24,13 +24,14 @@ public class GridLoc extends JLayeredPane {
     protected boolean inFogOfWar = false;
     protected ImageIcon targetedOverlay = new ImageIcon(Objects.requireNonNull(getClass().getResource("target.png")));
 
-    public GridLoc(ArrayList<GameObj> occupants, int col, int row) {
+    public GridLoc(Game game, ArrayList<GameObj> occupants, int col, int row) {
         super();
         this.setOccupants(occupants); this.col = col; this.row = row;
         var dims = new Dimension(80, 80);
         setSize(dims);
         setPreferredSize(dims);
         setOpaque(false);
+        this.game = game;
     }
 
     public int getCol() {
@@ -154,10 +155,16 @@ public class GridLoc extends JLayeredPane {
             String[] stringsToDraw = new String[2];
             stringsToDraw[0] = "";
             stringsToDraw[1] = "";
-            if (imgRepr != null) {
-                g.drawImage(imgRepr.getImage(), 0, 0, this);
-            } else {
-                stringsToDraw[0] = occupant.toString();
+            var hidden = occupant instanceof ActorObj
+                    && ((ActorObj) occupant).getConcealment() > game.getBoard().getPlayer().getPerception()
+                    && !((ActorObj) occupant).isInCombat()
+                    && !isDebug();
+            if (!hidden) {
+                if (imgRepr != null) {
+                    g.drawImage(imgRepr.getImage(), 0, 0, this);
+                } else {
+                    stringsToDraw[0] = occupant.toString();
+                }
             }
             if (!isEnabled()) {
                 g.setColor(new Color(0x3c, 0x3c, 0x3c, 0x3c));
@@ -208,10 +215,6 @@ public class GridLoc extends JLayeredPane {
     }
 
     public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+        return game.isDebug();
     }
 }
