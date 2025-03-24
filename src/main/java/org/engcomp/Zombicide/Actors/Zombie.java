@@ -25,6 +25,7 @@ public abstract class Zombie extends ActorObj {
 
     @Override
     public Interaction run() {
+        setAlerted(!getLoc().isInFogOfWar());
         if (isInCombat()) { return null; }
         var inters = possibleInteractions();
         if (alerted) {
@@ -56,8 +57,9 @@ public abstract class Zombie extends ActorObj {
             GridLoc loc = pair.r;
             // stop one step before our limit, since we add neighbouring
             // locations which will probably be +1 dist
-            var occupiedByNonPlayer = loc != ourLoc && loc.isExclusivelyOccupied() && !loc.isPlayerHere();
-            if (dist > speed || occupiedByNonPlayer) continue;
+            var occupiedByPlayer = loc.isPlayerHere();
+            var occupiedByOther = loc != ourLoc && loc.isExclusivelyOccupied();
+            if (dist > speed || (!occupiedByPlayer && occupiedByOther)) continue;
             neighs.add(loc);
             for (var neigh : board.getOrthogonals(loc)) {
                 if (!neighs.contains(neigh)) {
@@ -98,5 +100,13 @@ public abstract class Zombie extends ActorObj {
 
     public Damage getAttackDamage() {
         return attackDamage;
+    }
+
+    public boolean isAlerted() {
+        return alerted;
+    }
+
+    public void setAlerted(boolean alerted) {
+        this.alerted = alerted;
     }
 }

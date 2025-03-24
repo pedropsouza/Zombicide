@@ -204,7 +204,13 @@ public class Game extends JFrame {
     }
 
     public void chestEncounter(Chest c) {
-        board.getPlayer().addItemToInventory(c.getItem());
+        Player p = board.getPlayer();
+        p.addItemToInventory(c.getItem());
+        if (c.getItem() == Item.Revolver) {
+            p.getLoc().mutateOcuppants(occs -> {
+                occs.add(new ZombieCrawler(this));
+            });
+        }
     }
 
     public int getTurn() {
@@ -240,6 +246,7 @@ public class Game extends JFrame {
     }
 
     public void setDebug(boolean debug) {
+        this.getBoard().stream().forEach(e -> e.val.setDebug(debug));
         this.debug = debug;
     }
 

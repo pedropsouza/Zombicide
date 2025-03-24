@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 // https://stackoverflow.com/a/46360964
 public class GridLoc extends JLayeredPane {
+    protected boolean debug = false;
     protected int col;
     protected int row;
     protected int playerDistance = 0;
@@ -29,6 +30,7 @@ public class GridLoc extends JLayeredPane {
         var dims = new Dimension(80, 80);
         setSize(dims);
         setPreferredSize(dims);
+        setOpaque(false);
     }
 
     public int getCol() {
@@ -131,7 +133,9 @@ public class GridLoc extends JLayeredPane {
                 acc.add(new Interaction.EnterCombat(opponent));
             }
             if (forActor instanceof Zombie && opponent instanceof Player) {
-                if (forActor.getLoc().getPlayerDistance() > 1) { return; }
+                if (forActor.getLoc().getPlayerDistance() > 1) {
+                    return;
+                }
                 acc.add(new Interaction.EnterCombat(forActor));
             }
         });
@@ -145,8 +149,10 @@ public class GridLoc extends JLayeredPane {
 
     @Override
     protected void paintComponent(Graphics g) {
-        if (isInFogOfWar()) {
-            g.setColor(new Color(0x1c, 0x1c, 0x1c));
+        final Color fogClr = Color.decode("0x1c1c1c");
+        final Color debugFogClr = new Color(0x1c, 0x1c, 0x1c, 0x4f);
+        if (isInFogOfWar() && !isDebug()) {
+            g.setColor(fogClr);
             g.fillRect(0,0, 80,80);
             return;
         }
@@ -165,7 +171,7 @@ public class GridLoc extends JLayeredPane {
                 g.fillRect(0,0,80,80);
             }
             g.setColor(Color.BLACK);
-            if (occupant.getGame().isDebug()) {
+            if (isDebug()) {
                 stringsToDraw[0] += this.toString();
                 stringsToDraw[1] += "dist " + playerDistance;
             }
@@ -177,6 +183,10 @@ public class GridLoc extends JLayeredPane {
             if (isTargeted()) {
                 g.drawImage(targetedOverlay.getImage(), 0, 0, this);
             }
+        }
+        if (isInFogOfWar() && isDebug()) {
+            g.setColor(debugFogClr);
+            g.fillRect(0,0, 80,80);
         }
     }
 
@@ -202,5 +212,13 @@ public class GridLoc extends JLayeredPane {
 
     public void setInFogOfWar(boolean inFogOfWar) {
         this.inFogOfWar = inFogOfWar;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }
