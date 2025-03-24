@@ -26,7 +26,7 @@ public class Game extends JFrame {
     protected CombatPanel combatPanel = null;
     protected DefaultListModel<String> combatLog;
     protected Random rand = new Random();
-    protected List<ActorObj> actors = new ArrayList<>();
+    protected ArrayList<ActorObj> actors = new ArrayList<>();
     protected boolean debug = false;
     protected GameStage stage;
     protected int turn;
@@ -136,26 +136,28 @@ public class Game extends JFrame {
         board.stream().forEach(loc -> loc.val.setPlayerDistance(Integer.MAX_VALUE));
         var setSizeHeuristic = board.getCols()*board.getRows();
         Set<GridLoc> visited = new HashSet<>(setSizeHeuristic);
-        Queue<Pair<Pair<Integer,Boolean>, GridLoc>> queue = new ArrayDeque<>(setSizeHeuristic/10);
-        queue.add(new Pair<>(new Pair<>(0, false), startLoc));
+        Queue<Pair<Pair<Integer,Integer>, GridLoc>> queue = new ArrayDeque<>(setSizeHeuristic/10);
+        queue.add(new Pair<>(new Pair<>(0, 0), startLoc));
 
         while(!queue.isEmpty()) {
             var pair = queue.remove();
             int dist = pair.l.l;
-            boolean fog = pair.l.r;
+            int fogLvl = pair.l.r;
             GridLoc loc = pair.r;
             visited.add(loc);
 
-            loc.setInFogOfWar(fog);
+            loc.setInFogOfWar(fogLvl == 2);
             if (loc != startLoc && loc.isSolid()) continue;
             loc.setPlayerDistance(dist);
 
             for (var neigh : board.getOrthogonals(loc)) {
                 if (!visited.contains(neigh)) {
-                    var nextFog = fog;
-                    if(!fog) {
-                        nextFog = board.getStraightPath(startLoc, neigh)
-                                .anyMatch(GridLoc::isSolid);
+                    var nextFog = fogLvl;
+                    if(fogLvl < 2) {
+                        nextFog += board.getStraightPath(startLoc, neigh)
+                                .anyMatch(GridLoc::isSolid)?
+                                1 : 0;
+                        ;
                     }
                     queue.add(new Pair<>(new Pair<>(dist+1, nextFog), neigh));
                 }
@@ -251,7 +253,7 @@ public class Game extends JFrame {
     }
 
     public void removeActor(ActorObj actor) {
-        this.actors = actors.stream().filter(a -> a != actor).toList();
+        this.actors.remove(actor);
         var loc = actor.getLoc();
         loc.mutateOcuppants(occupants -> {
             occupants.remove(actor);

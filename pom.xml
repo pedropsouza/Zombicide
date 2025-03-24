@@ -6,7 +6,7 @@
 
     <groupId>org.engcomp</groupId>
     <artifactId>Zombicide</artifactId>
-    <version>0.0.1-wip</version>
+    <version>0.0.2-fun</version>
     <name>Zombicide</name>
 
     <properties>
