@@ -30,6 +30,7 @@ public class Sidebar extends Box {
             var bandages = new JButton("Use bandage"); upper.add(bandages);
             var wait = new JButton("Skip turn"); upper.add(wait);
             health.setAlignmentX(CENTER_ALIGNMENT);
+            perception.setAlignmentX(CENTER_ALIGNMENT);
             bandages.setAlignmentX(CENTER_ALIGNMENT);
             wait.setAlignmentX(CENTER_ALIGNMENT);
 
